@@ -13,17 +13,21 @@
 > playMidArrow :: Midi->UISF () ()
 > playMidArrow mid = proc _ -> do 
 >   dev<-selectOutput-<()
->   e<-edge<<<button "play"-<()
->   (maybeMsgs,_)<-eventBuffer <<< getBufferOp mid -< e
->   midiOut-<(dev, maybeMsgs)
+>   rec playing <- delay False -< playing'
+>       e<- if playing then edge<<<button "stop"-<()
+>                      else edge<<<button "play"-<()
+>       (maybeMsgs,isemp)<- eventBuffer <<< getBufferOp mid -< (e, playing)
+>       midiOut-<(dev, maybeMsgs)
+>       let playing' = not isemp
 >   returnA-<()
 
-> getBufferOp :: Midi->UISF (SEvent ()) (BufferOperation MidiMessage)
-> getBufferOp mid = proc e -> do 
->   let midiEvent = fmap (const $ midiToBO mid) e
->   case midiEvent of 
->     Nothing -> returnA-<NoBOp
->     Just bo -> returnA-<bo
+> getBufferOp :: Midi->UISF (SEvent (), Bool) (BufferOperation MidiMessage)
+> getBufferOp mid = proc (e, p) -> do 
+>   case e of 
+>     Nothing -> returnA -< NoBOp
+>     Just x -> do 
+>       if p then returnA -< ClearBuffer
+>            else returnA -< midiToBO mid
 
 > midiToBO :: Midi->BufferOperation MidiMessage
 > midiToBO mid = let (m, _, _) = fromMidi mid
