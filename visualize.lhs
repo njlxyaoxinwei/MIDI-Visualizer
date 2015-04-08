@@ -1,6 +1,7 @@
 > module Main where
 
-> import Play
+> import Visualize.Play
+> import Visualize.Music
 > import System.Environment
 > import Codec.Midi
 
@@ -12,6 +13,6 @@
 >       file <- importFile x
 >       case file of
 >         Left s    -> putStrLn s
->         Right mid -> playMid mid
+>         Right mid -> putStrLn (show mid) >> (playMid $ midiToMsgs mid)
 
 
