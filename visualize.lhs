@@ -1,9 +1,12 @@
+> {-# LANGUAGE Arrows #-}
+
 > module Main where
 
 > import Visualize.Play
 > import Visualize.Music
 > import System.Environment
 > import Codec.Midi
+> import Euterpea
 
 > main = do 
 >   args <- getArgs
@@ -13,7 +16,12 @@
 >       file <- importFile x
 >       case file of
 >         Left s    -> putStrLn s
->         Right mid -> (putStrLn . show . debugMidi $ mid) >> (playMid $ midiToMsgs mid)
+>         Right mid -> (putStrLn . show . debugMidi $ mid) >> (visualize $ midiToMsgs mid)
+
+> visualize :: [(DeltaT, Message)]->IO ()
+> visualize msgs = runMUI defaultMUIParams $ proc _ -> do 
+>   withDisplay $ playMidArrow msgs -< ()
+>   returnA -< ()
 
 > debugMidi mid = (fileType mid, timeDiv mid, map (filter myFilter) $ tracks mid) where
 >   myFilter (_, NoteOn _ _ _) = False
