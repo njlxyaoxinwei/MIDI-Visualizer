@@ -7,7 +7,7 @@
 > import FRP.UISF.AuxFunctions
 
 > data PlayStatus = Playing | PStopped | Paused
-> data PlayEvent  = Play | PStop | Pause | PResume
+> data PlayEvent  = Play | PStop | Pause | PResume | PSkip DeltaT
 
 > playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message])
 > playMidArrow msgs = proc _ -> do 
@@ -33,13 +33,14 @@
 > playButtons :: UISF PlayStatus (SEvent PlayEvent)
 > playButtons = leftRight $ proc ps -> do 
 >   case ps of
->     Playing  -> arr (helper Pause) <<< (edge<<<button "pause") &&& (edge<<<button "stop")   -<()
->     Paused   -> arr (helper PResume) <<< (edge<<<button "resume") &&& (edge<<<button "stop")-<()
->     PStopped -> arr (fmap (const Play)) <<< edge<<<button "play"                          -<()
+>     Playing  -> helper Pause ^<< (edge<<<button "pause") &&& (edge<<<button "stop") &&& (edge<<<button ">>")    -<()
+>     Paused   -> helper PResume ^<< (edge<<<button "resume") &&& (edge<<<button "stop") &&& (edge<<<button ">>") -<()
+>     PStopped -> fmap (const Play) ^<< edge<<<button "play"                                                      -<()
 >   where helper pe es = case es of 
->                         (_, Just _)       -> Just PStop
->                         (Just _, _)       -> Just pe
->                         (Nothing, Nothing)-> Nothing
+>                         (_, (Just _,_)) -> Just PStop
+>                         (Just _,    _ ) -> Just pe
+>                         (_, (_,Just _)) -> Just (PSkip 2)      
+>                         _               -> Nothing
 
 
 > getBOp :: [(DeltaT, Message)]->UISF (PlayStatus, SEvent PlayEvent) (BufferOperation Message, PlayStatus)
@@ -49,6 +50,7 @@
 >     (Playing,  Just Pause)-> returnA -< (SetBufferPlayStatus False NoBOp, Paused)
 >     (Paused, Just PResume)-> returnA -< (SetBufferPlayStatus True NoBOp, Playing)
 >     (_,        Just PStop)-> returnA -< (ClearBuffer, PStopped)
+>     (_,    Just (PSkip x))-> returnA -< (SkipAheadInBuffer x, ps)
 >     _                     -> returnA -< (NoBOp, ps)
 
 
