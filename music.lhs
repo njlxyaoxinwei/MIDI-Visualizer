@@ -6,18 +6,18 @@
 > myDiv :: (Integral a)=>a->a->Double
 > myDiv x y = fromIntegral x / fromIntegral y
 
-> midiToMsgs :: Midi->[(DeltaT, MidiMessage)]
+> midiToMsgs :: Midi->[(DeltaT, Message)]
 > midiToMsgs mid = let timeD    = timeDiv mid
 >                      track    = head . tracks . toSingleTrack $ mid
 >                   in convertTrack timeD defaultMSPB track
 
-> convertTrack :: TimeDiv->Int->[(Ticks, Message)]->[(DeltaT, MidiMessage)]
+> convertTrack :: TimeDiv->Int->[(Ticks, Message)]->[(DeltaT, Message)]
 > convertTrack _  _  []         = []
 > convertTrack td te ((t,m):ts) = let newTempo = case m of
 >                                       TempoChange x -> x
 >                                       _             -> te        
 >                                     delta = getDeltaT td te t
->                                 in (delta, Std m):convertTrack td newTempo ts
+>                                 in (delta, m):convertTrack td newTempo ts
 
 > getDeltaT :: TimeDiv->Int->Ticks->DeltaT
 > getDeltaT (TicksPerSecond fps tpf) _    t = t `myDiv` (fps*tpf)

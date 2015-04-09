@@ -7,11 +7,11 @@
 > import FRP.UISF.AuxFunctions
 
 
-> playMid :: [(DeltaT, MidiMessage)]->IO ()
+> playMid :: [(DeltaT, Message)]->IO ()
 > playMid msgs = runMUI defaultMUIParams $
->  playMidArrow msgs >>> display
+>  playMidArrow msgs >>> arr (const ())
 
-> playMidArrow :: [(DeltaT, MidiMessage)]->UISF () (SEvent [MidiMessage])
+> playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message])
 > playMidArrow msgs = proc _ -> do 
 >   dev<-selectOutput-<()
 >   rec playing <- delay False -< playing'
@@ -19,11 +19,11 @@
 >                          else edge<<<button "play"-<()
 >       bop <- getBufferOp msgs -< (e, playing)
 >       (maybeMsgs,isemp) <- eventBuffer -< bop
->       midiOut-<(dev, if shouldClearBuffer bop 
->                      then Just (stopAllNotes [0..15]) ~++ maybeMsgs
->                      else maybeMsgs)
+>       let midiMsgs = fmap (map Std) $ checkStop bop ~++ maybeMsgs 
+>       midiOut-<(dev, midiMsgs)
 >       let playing' = not isemp
 >   returnA-<maybeMsgs
+>   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Just []
 
 > shouldClearBuffer :: BufferOperation a->Bool
 > shouldClearBuffer bop = case bop of
@@ -33,10 +33,10 @@
 >   SkipAheadInBuffer   _   -> True
 >   _                       -> False
 
-> stopAllNotes :: [Channel]->[MidiMessage]
-> stopAllNotes cs = map (\c->Std (ControlChange c 123 0)) cs
+> stopAllNotes :: [Channel]->[Message]
+> stopAllNotes cs = map (\c->ControlChange c 123 0) cs
 
-> getBufferOp :: [(DeltaT, MidiMessage)]->UISF (SEvent (), Bool) (BufferOperation MidiMessage)
+> getBufferOp :: [(DeltaT, Message)]->UISF (SEvent (), Bool) (BufferOperation Message)
 > getBufferOp msgs = proc (click, p) -> do 
 >                      case click of 
 >                        Nothing -> returnA -< NoBOp

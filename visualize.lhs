@@ -13,7 +13,7 @@
 >       file <- importFile x
 >       case file of
 >         Left s    -> putStrLn s
->         Right mid -> (putStrLn . show . debugMidi $ mid) >> (playMid $ midiToMsgs $ mid)
+>         Right mid -> (putStrLn . show . debugMidi $ mid) >> (playMid $ midiToMsgs mid)
 
 > debugMidi mid = (fileType mid, timeDiv mid, map (filter myFilter) $ tracks mid) where
 >   myFilter (_, NoteOn _ _ _) = False
