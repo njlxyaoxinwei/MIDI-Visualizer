@@ -8,9 +8,10 @@
 
 
 > playMid :: [(DeltaT, MidiMessage)]->IO ()
-> playMid = runMUI defaultMUIParams . playMidArrow
+> playMid msgs = runMUI defaultMUIParams $
+>  playMidArrow msgs >>> display
 
-> playMidArrow :: [(DeltaT, MidiMessage)]->UISF () ()
+> playMidArrow :: [(DeltaT, MidiMessage)]->UISF () (SEvent [MidiMessage])
 > playMidArrow msgs = proc _ -> do 
 >   dev<-selectOutput-<()
 >   rec playing <- delay False -< playing'
@@ -22,7 +23,7 @@
 >                      then Just (stopAllNotes [0..15]) ~++ maybeMsgs
 >                      else maybeMsgs)
 >       let playing' = not isemp
->   returnA-<()
+>   returnA-<maybeMsgs
 
 > shouldClearBuffer :: BufferOperation a->Bool
 > shouldClearBuffer bop = case bop of
@@ -36,10 +37,10 @@
 > stopAllNotes cs = map (\c->Std (ControlChange c 123 0)) cs
 
 > getBufferOp :: [(DeltaT, MidiMessage)]->UISF (SEvent (), Bool) (BufferOperation MidiMessage)
-> getBufferOp msgs = proc (e, p) -> do 
->                      case e of 
+> getBufferOp msgs = proc (click, p) -> do 
+>                      case click of 
 >                        Nothing -> returnA -< NoBOp
->                        Just x -> do 
+>                        Just _ -> do 
 >                          if p then returnA -< ClearBuffer
 >                          else returnA -< AppendToBuffer msgs
 
