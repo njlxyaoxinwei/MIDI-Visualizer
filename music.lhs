@@ -26,3 +26,23 @@
 Default Microseconds Per Beat
 
 > defaultMSPB = 500000 :: Codec.Midi.Tempo
+
+
+> getMsgsByChannel :: Channel->[Message]->[Message]
+> getMsgsByChannel c [] = []
+> getMsgsByChannel c (m:ms) = let ms' = getMsgsByChannel c ms
+>                             in if channel m == c then m:ms' else ms'
+
+> getChannelMsgs :: [Message]->[Message]
+> getChannelMsgs = filter channelSpecificFilter
+
+
+> channelSpecificFilter :: Message->Bool
+> channelSpecificFilter (NoteOff       _ _ _) = True
+> channelSpecificFilter (NoteOn        _ _ _) = True
+> channelSpecificFilter (KeyPressure   _ _ _) = True
+> channelSpecificFilter (ControlChange _ _ _) = True
+> channelSpecificFilter (ProgramChange _ _  ) = True
+> channelSpecificFilter (ChannelPressure _ _) = True
+> channelSpecificFilter (PitchWheel    _ _  ) = True
+> channelSpecificFilter _                     = False

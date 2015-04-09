@@ -20,7 +20,7 @@
 
 > visualize :: [(DeltaT, Message)]->IO ()
 > visualize msgs = runMUI defaultMUIParams $ proc _ -> do 
->   playMidArrow msgs -< ()
+>   ms<-playMidArrow msgs -< ()
 >   returnA -< ()
 
 > debugMidi mid = (fileType mid, timeDiv mid, map (filter myFilter) $ tracks mid) where
