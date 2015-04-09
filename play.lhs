@@ -6,8 +6,8 @@
 > import Euterpea.IO.MUI.MidiWidgets
 > import FRP.UISF.AuxFunctions
 
-> data PlayStatus = Playing | PStopped | Paused
-> data PlayEvent  = Play | PStop | Pause | PResume | PSkip DeltaT
+> data PlayStatus = Playing | PStopped | Paused deriving (Show, Eq)
+> data PlayEvent  = Play | PStop | Pause | PResume | PSkip DeltaT deriving (Show, Eq)
 
 > playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message])
 > playMidArrow msgs = proc _ -> do 
@@ -36,24 +36,24 @@
 
 > playButtons :: UISF PlayStatus (SEvent PlayEvent)
 > playButtons = proc ps -> do 
->   case ps of
->     Playing  -> do dt<-label "Skip Ahead">>>withDisplay (hSlider (0.1,30) 1)-<()
->                    (| leftRight ( do e1<-edge<<<button "pause"-< ()
->                                      e2<-edge<<<button "stop" -< ()
->                                      e3<-edge<<<button ">>"   -< ()
->                                      returnA -< helper dt Pause (e1,e2,e3))|)
->     Paused   -> do dt<-label "Skip Ahead">>>withDisplay (hSlider (0.1,30) 1)-<()
->                    (| leftRight ( do e1<-edge<<<button "resume"-< ()
->                                      e2<-edge<<<button "stop" -< ()
->                                      e3<-edge<<<button ">>"   -< ()
->                                      returnA -< helper dt PResume (e1,e2,e3))|)
->     PStopped -> fmap (const Play) ^<< edge<<<button "play"-<()
+>   if ps == PStopped 
+>     then fmap (const Play) ^<< edge<<<button "play"-<()
+>     else do dt<-label "Skip Ahead">>>withDisplay (hSlider (0.1,30) 1)-<()
+>             (| leftRight ( do 
+>                 e1 <- do case ps of 
+>                            Playing -> edge<<<button "pause" -<()
+>                            Paused  -> edge<<<button "resume"-<()
+>                 e2 <- edge<<<button "stop" -< ()   
+>                 e3 <- edge<<<button ">>"   -< ()
+>                 returnA -< helper dt (helper2 ps) (e1,e2,e3)
+>              ) |)
 >   where helper dt pe es = case es of 
 >                         (_,Just _,_) -> Just PStop
 >                         (Just _,_,_) -> Just pe
 >                         (_,_,Just _) -> Just (PSkip dt)      
 >                         _            -> Nothing
-
+>         helper2 Playing = Pause
+>         helper2 Paused  = PResume
 
 > getBOp :: [(DeltaT, Message)]->UISF (PlayStatus, SEvent PlayEvent) (BufferOperation Message, PlayStatus)
 > getBOp msgs = proc (ps, pe) -> do 
