@@ -15,7 +15,8 @@
 >   rec pStatus <- delay PStopped -< pStatus''
 >       pe <- playButtons -< pStatus
 >       (bop, pStatus') <- getBOp msgs -< (pStatus, pe)
->       (maybeMsgs, isEmpty) <- eventBuffer -< bop
+>       tp<-unique<<< tempoSlider -<()
+>       (maybeMsgs, isEmpty) <- eventBuffer -< maybe bop (\x->SetBufferTempo x bop) tp
 >       let pStatus'' = if isEmpty then PStopped else pStatus'
 >   midiOut-<(dev, fmap (map Std) $ checkStop bop ~++ maybeMsgs)
 >   returnA-<maybeMsgs
@@ -30,17 +31,28 @@
 >   _                       -> False
 
 
+> tempoSlider :: UISF () Double
+> tempoSlider = withDisplay $ ((/10).fromIntegral)^<<hiSlider 10 (1,100) 10<<<label "Playback Speed"
+
 > playButtons :: UISF PlayStatus (SEvent PlayEvent)
-> playButtons = leftRight $ proc ps -> do 
+> playButtons = proc ps -> do 
 >   case ps of
->     Playing  -> helper Pause ^<< (edge<<<button "pause") &&& (edge<<<button "stop") &&& (edge<<<button ">>")    -<()
->     Paused   -> helper PResume ^<< (edge<<<button "resume") &&& (edge<<<button "stop") &&& (edge<<<button ">>") -<()
->     PStopped -> fmap (const Play) ^<< edge<<<button "play"                                                      -<()
->   where helper pe es = case es of 
->                         (_, (Just _,_)) -> Just PStop
->                         (Just _,    _ ) -> Just pe
->                         (_, (_,Just _)) -> Just (PSkip 2)      
->                         _               -> Nothing
+>     Playing  -> do dt<-label "Skip Ahead">>>withDisplay (hSlider (0.1,30) 1)-<()
+>                    (| leftRight ( do e1<-edge<<<button "pause"-< ()
+>                                      e2<-edge<<<button "stop" -< ()
+>                                      e3<-edge<<<button ">>"   -< ()
+>                                      returnA -< helper dt Pause (e1,e2,e3))|)
+>     Paused   -> do dt<-label "Skip Ahead">>>withDisplay (hSlider (0.1,30) 1)-<()
+>                    (| leftRight ( do e1<-edge<<<button "resume"-< ()
+>                                      e2<-edge<<<button "stop" -< ()
+>                                      e3<-edge<<<button ">>"   -< ()
+>                                      returnA -< helper dt PResume (e1,e2,e3))|)
+>     PStopped -> fmap (const Play) ^<< edge<<<button "play"-<()
+>   where helper dt pe es = case es of 
+>                         (_,Just _,_) -> Just PStop
+>                         (Just _,_,_) -> Just pe
+>                         (_,_,Just _) -> Just (PSkip dt)      
+>                         _            -> Nothing
 
 
 > getBOp :: [(DeltaT, Message)]->UISF (PlayStatus, SEvent PlayEvent) (BufferOperation Message, PlayStatus)
