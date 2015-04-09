@@ -19,5 +19,6 @@
 >   notNote (_, NoteOn _ _ _) = False
 >   notNote (_, NoteOff _ _ _) = False
 >   notNote (_, Reserved _ _) = False
+>   notNote (_, Text _) = False
 >   notNote _ = True
 
