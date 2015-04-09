@@ -6,6 +6,8 @@
 > import Euterpea.IO.MUI.MidiWidgets
 > import FRP.UISF.AuxFunctions
 
+> data PlayStatus = Playing | PStopped | Paused
+> data PlayEvent  = Play | PStop | Pause | PResume
 
 > playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message])
 > playMidArrow msgs = proc _ -> do 
@@ -27,7 +29,6 @@
 >   SkipAheadInBuffer   _   -> True
 >   _                       -> False
 
-arr helper Pause <<<(edge<<<button " ") &&& (edge<<<button " ")-<()
 
 > playButtons :: UISF PlayStatus (SEvent PlayEvent)
 > playButtons = leftRight $ proc ps -> do 
@@ -40,29 +41,18 @@ arr helper Pause <<<(edge<<<button " ") &&& (edge<<<button " ")-<()
 >                         (Just _, _)       -> Just pe
 >                         (Nothing, Nothing)-> Nothing
 
-> data PlayStatus = Playing | PStopped | Paused
-> data PlayEvent  = Play | PStop | Pause | PResume
 
 > getBOp :: [(DeltaT, Message)]->UISF (PlayStatus, SEvent PlayEvent) (BufferOperation Message, PlayStatus)
 > getBOp msgs = proc (ps, pe) -> do 
 >   case (ps,pe) of
->     (_,           Nothing)-> returnA -< (NoBOp, ps)
 >     (PStopped,  Just Play)-> returnA -< (SetBufferPlayStatus True $ AppendToBuffer msgs, Playing)
 >     (Playing,  Just Pause)-> returnA -< (SetBufferPlayStatus False NoBOp, Paused)
 >     (Paused, Just PResume)-> returnA -< (SetBufferPlayStatus True NoBOp, Playing)
 >     (_,        Just PStop)-> returnA -< (ClearBuffer, PStopped)
+>     _                     -> returnA -< (NoBOp, ps)
+
 
 
 > stopAllNotes :: [Channel]->[Message]
 > stopAllNotes cs = map (\c->ControlChange c 123 0) cs
-
-> getBufferOp :: [(DeltaT, Message)]->UISF (SEvent (), Bool) (BufferOperation Message)
-> getBufferOp msgs = proc (click, p) -> do 
->                      case click of 
->                        Nothing -> returnA -< NoBOp
->                        Just _ -> do 
->                          if p then returnA -< ClearBuffer
->                          else returnA -< AppendToBuffer msgs
-
-
 
