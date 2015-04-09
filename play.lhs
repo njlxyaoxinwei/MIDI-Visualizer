@@ -16,10 +16,24 @@
 >   rec playing <- delay False -< playing'
 >       e <- do if playing then edge<<<button "stop"-<()
 >                          else edge<<<button "play"-<()
->       (maybeMsgs,isemp)<- eventBuffer <<< getBufferOp msgs -< (e, playing)
->       midiOut-<(dev, maybeMsgs)
+>       bop <- getBufferOp msgs -< (e, playing)
+>       (maybeMsgs,isemp) <- eventBuffer -< bop
+>       midiOut-<(dev, if shouldClearBuffer bop 
+>                      then Just (stopAllNotes [0..15]) ~++ maybeMsgs
+>                      else maybeMsgs)
 >       let playing' = not isemp
 >   returnA-<()
+
+> shouldClearBuffer :: BufferOperation a->Bool
+> shouldClearBuffer bop = case bop of
+>   SetBufferPlayStatus _ b -> shouldClearBuffer b
+>   SetBufferTempo      _ b -> shouldClearBuffer b
+>   ClearBuffer             -> True
+>   SkipAheadInBuffer   _   -> True
+>   _                       -> False
+
+> stopAllNotes :: [Channel]->[MidiMessage]
+> stopAllNotes cs = map (\c->Std (ControlChange c 123 0)) cs
 
 > getBufferOp :: [(DeltaT, MidiMessage)]->UISF (SEvent (), Bool) (BufferOperation MidiMessage)
 > getBufferOp msgs = proc (e, p) -> do 
