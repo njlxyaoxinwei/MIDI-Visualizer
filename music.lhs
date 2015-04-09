@@ -3,20 +3,26 @@
 > import Euterpea.IO.MUI.MidiWidgets
 > import Codec.Midi
 
+> myDiv :: (Integral a)=>a->a->Double
+> myDiv x y = fromIntegral x / fromIntegral y
+
 > midiToMsgs :: Midi->[(DeltaT, MidiMessage)]
-> midiToMsgs mid = let bop = midiToBO mid
->                  in case bop of
->                       AppendToBuffer x -> x
->                       _                -> error "File not supported"
+> midiToMsgs mid = let timeD    = timeDiv mid
+>                      track    = head . tracks . toSingleTrack $ mid
+>                   in convertTrack timeD defaultMSPB track
 
+> convertTrack :: TimeDiv->Int->[(Ticks, Message)]->[(DeltaT, MidiMessage)]
+> convertTrack _  _  []         = []
+> convertTrack td te ((t,m):ts) = let newTempo = case m of
+>                                       TempoChange x -> x
+>                                       _             -> te        
+>                                     delta = getDeltaT td te t
+>                                 in (delta, Std m):convertTrack td newTempo ts
 
+> getDeltaT :: TimeDiv->Int->Ticks->DeltaT
+> getDeltaT (TicksPerSecond fps tpf) _    t = t `myDiv` (fps*tpf)
+> getDeltaT (TicksPerBeat   tpb)     mspb t = (t * mspb) `myDiv` (tpb*1000000)
 
---> midiToMsgs' :: Midi->[(DeltaT, MidiMessage)]
---> midiToMsgs' mid = let ftype  = fileType mid
--->                       bpm    = getBPM $ timeDiv mid
--->                       tracks = tracks mid
+Default Microseconds Per Beat
 
-
-> midiToBO :: Midi->BufferOperation MidiMessage
-> midiToBO mid = let (m, _, _) = fromMidi mid
->                in musicToBO False [] m
+> defaultMSPB = 500000 :: Codec.Midi.Tempo
