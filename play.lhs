@@ -10,11 +10,11 @@
 > playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message])
 > playMidArrow msgs = proc _ -> do 
 >   dev<-selectOutput-<()
->   rec playing <- delay False -< playing'
->       e <- do if playing then edge<<<button "stop"-<()
->                          else edge<<<button "play"-<()
->       bop <- getBufferOp msgs -< (e, playing)
->       (maybeMsgs,playing') <- second (arr not)<<<eventBuffer -< bop
+>   rec pStatus <- delay PStopped -< pStatus''
+>       pe <- playButtons -< pStatus
+>       (bop, pStatus') <- getBOp msgs -< (pStatus, pe)
+>       (maybeMsgs, isEmpty) <- eventBuffer -< bop
+>       let pStatus'' = if isEmpty then PStopped else pStatus'
 >   midiOut-<(dev, fmap (map Std) $ checkStop bop ~++ maybeMsgs)
 >   returnA-<maybeMsgs
 >   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Just []
@@ -26,6 +26,37 @@
 >   ClearBuffer             -> True
 >   SkipAheadInBuffer   _   -> True
 >   _                       -> False
+
+arr helper Pause <<<(edge<<<button " ") &&& (edge<<<button " ")-<()
+
+> playButtons :: UISF PlayStatus (SEvent PlayEvent)
+> playButtons = proc ps -> do 
+>   case ps of
+>     Playing -> (| leftRight (do e1<-edge<<<button "pause"-<()
+>                                 e2<-edge<<<button "stop" -<()
+>                                 returnA -< helper Pause (e1,e2)) |)
+>     Paused  -> (| leftRight (do e1<-edge<<<button "resume"-<()
+>                                 e2<-edge<<<button "stop"  -<()
+>                                 returnA -< helper PResume (e1,e2)) |)
+>     PStopped -> do e<-edge<<<button "play"-<()
+>                    returnA -< fmap (const Play) e
+>   where helper pe es = case es of 
+>                         (_, Just _)       -> Just PStop
+>                         (Just _, _)       -> Just pe
+>                         (Nothing, Nothing)-> Nothing
+
+> data PlayStatus = Playing | PStopped | Paused
+> data PlayEvent  = Play | PStop | Pause | PResume
+
+> getBOp :: [(DeltaT, Message)]->UISF (PlayStatus, SEvent PlayEvent) (BufferOperation Message, PlayStatus)
+> getBOp msgs = proc (ps, pe) -> do 
+>   case (ps,pe) of
+>     (_,           Nothing)-> returnA -< (NoBOp, ps)
+>     (PStopped,  Just Play)-> returnA -< (SetBufferPlayStatus True $ AppendToBuffer msgs, Playing)
+>     (Playing,  Just Pause)-> returnA -< (SetBufferPlayStatus False NoBOp, Paused)
+>     (Paused, Just PResume)-> returnA -< (SetBufferPlayStatus True NoBOp, Playing)
+>     (_,        Just PStop)-> returnA -< (ClearBuffer, PStopped)
+
 
 > stopAllNotes :: [Channel]->[Message]
 > stopAllNotes cs = map (\c->ControlChange c 123 0) cs
