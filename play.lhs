@@ -30,16 +30,11 @@
 arr helper Pause <<<(edge<<<button " ") &&& (edge<<<button " ")-<()
 
 > playButtons :: UISF PlayStatus (SEvent PlayEvent)
-> playButtons = proc ps -> do 
+> playButtons = leftRight $ proc ps -> do 
 >   case ps of
->     Playing -> (| leftRight (do e1<-edge<<<button "pause"-<()
->                                 e2<-edge<<<button "stop" -<()
->                                 returnA -< helper Pause (e1,e2)) |)
->     Paused  -> (| leftRight (do e1<-edge<<<button "resume"-<()
->                                 e2<-edge<<<button "stop"  -<()
->                                 returnA -< helper PResume (e1,e2)) |)
->     PStopped -> do e<-edge<<<button "play"-<()
->                    returnA -< fmap (const Play) e
+>     Playing  -> arr (helper Pause) <<< (edge<<<button "pause") &&& (edge<<<button "stop")   -<()
+>     Paused   -> arr (helper PResume) <<< (edge<<<button "resume") &&& (edge<<<button "stop")-<()
+>     PStopped -> arr (fmap (const Play)) <<< edge<<<button "play"                          -<()
 >   where helper pe es = case es of 
 >                         (_, Just _)       -> Just PStop
 >                         (Just _, _)       -> Just pe
