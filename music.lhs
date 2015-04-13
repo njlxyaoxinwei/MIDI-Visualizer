@@ -5,6 +5,7 @@
 > import Data.List
 
 > type NoteInfo = (Key, Velocity)
+> type UpdateFunc a = a->[Message]->a
 
 A wrapper for dividing integers
 
@@ -65,16 +66,23 @@ a channel.
 > channelSpecificFilter _                     = False
 
 
+
+> getUpdateFunc :: (a->Message->a)->UpdateFunc a
+> getUpdateFunc func original = foldl func original
+
 Update the NoteInfo according to a new set of messages
 
-> updateNoteInfo :: [NoteInfo]->[Message]->[NoteInfo]
-> updateNoteInfo nis []       = nis
-> updateNoteInfo nis (m:msgs) = let nis' = updateOneNote nis m
->                               in updateNoteInfo nis' msgs where
+> updateNoteInfo :: UpdateFunc [NoteInfo]
+> updateNoteInfo = getUpdateFunc updateOneNote where
 >   updateOneNote nis (NoteOff _ k v) = deleteBy (\(k1,_) (k2,_)->k1==k2) (k,v) nis
+>   updateOneNote nis (NoteOn  _ k 0) = updateOneNote nis (NoteOff 0 k 0)
 >   updateOneNote nis (NoteOn  _ k v) = let nis' = updateOneNote nis (NoteOff 0 k v)
 >                                       in insert (k,v) nis'
 >   updateOneNote nis _               = nis
 
+Update InstrumentName according to a new set of messages
 
-
+> updateInstrumentName :: UpdateFunc InstrumentName
+> updateInstrumentName = getUpdateFunc updateInst where
+>   updateInst n (ProgramChange _ x) = toEnum x
+>   updateInst n _                   = n 
