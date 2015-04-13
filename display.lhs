@@ -20,17 +20,19 @@ Display channel information for list of channels
 > displayChannels :: [Channel]->UISF [SEvent [Message]] ()
 > displayChannels []     = arr (const ())
 > displayChannels (c:cs) = proc msgs -> do 
->   displayChannel     -< msgs!!c
+>   displayChannel c   -< msgs!!c
 >   displayChannels cs -< msgs
 
 Display channel information for one channel
 
-> displayChannel :: UISF (SEvent [Message]) ()
-> displayChannel = leftRight $ proc msgs -> do 
+> displayChannel :: Channel->UISF (SEvent [Message]) ()
+> displayChannel c = leftRight $ label ("Channel" ++ show (c+1)) >>> proc msgs -> do 
 >   notes <- getUpdateArrow [] updateNoteInfo                       -< msgs
 >   inst  <- getUpdateArrow AcousticGrandPiano updateInstrumentName -< msgs
->   display<<<label "Notes and Volume:" -< map (\(ap,v)->(pitch ap, v)) notes
->   display<<<label "with" -< inst
+>   -- display<<<label "Notes and Velocity:" -< map (\(ap,v)->(pitch ap, v)) notes
+>   display<<<label "Intrument: " -< inst
+>   let vs = Just $ map fromIntegral $ plotVelocity notes
+>   histogram (makeLayout (Fixed 300) (Fixed 35)) -< vs
 
 Display System information
 

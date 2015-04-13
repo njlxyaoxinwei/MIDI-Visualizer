@@ -34,7 +34,7 @@ Takes an array of timed messages and perform visualize.
 
 MUI Params
 
-> myMUIParams = defaultMUIParams{uiSize=(500,700)}
+> myMUIParams = defaultMUIParams{uiSize=(800,900)}
 
 ================================================================================
 For debugging purposes

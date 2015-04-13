@@ -93,3 +93,12 @@ Update BPM
 > updateMSPB = getUpdateFunc update where
 >   update t (TempoChange x) = x
 >   update t _               = t
+
+A Velocity Function from NoteInfo on [0..127]
+
+> plotVelocity :: [NoteInfo]->[Velocity]
+> plotVelocity = plotVelocity' 0 where
+>   plotVelocity' 128 _             = []
+>   plotVelocity' k []              = 0:plotVelocity' (k+1) []
+>   plotVelocity' k nis@((k',v):ns) = if k==k' then (v:plotVelocity' (k+1) ns)
+>                                              else (0:plotVelocity' (k+1) nis)
