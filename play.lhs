@@ -17,7 +17,7 @@ player UI, including buttons for play/resume/stop/skip-ahead and sliders for the
 amount to skip-ahead as well as for the playback speed. It generates a stream of 
 midi message events that are occurring at each time slot.
 
-> playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message])
+> playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message], PlayStatus)
 > playMidArrow msgs = proc _ -> do 
 >   dev<-selectOutput-<()
 >   rec pStatus <- delay PStopped -< pStatus''
@@ -27,7 +27,7 @@ midi message events that are occurring at each time slot.
 >       (maybeMsgs, isEmpty) <- eventBuffer -< maybe bop (\x->SetBufferTempo x bop) tp
 >       let pStatus'' = if isEmpty then PStopped else pStatus'
 >   midiOut-<(dev, fmap (map Std) $ checkStop bop ~++ maybeMsgs)
->   returnA-<maybeMsgs
+>   returnA-<(maybeMsgs, pStatus'')
 >   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Just []
 
 Certain BufferOperation, when applied to the buffer, requires notes on all 
