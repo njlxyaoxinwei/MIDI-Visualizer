@@ -39,25 +39,6 @@ Display channel information for one channel
 >       let newVal = maybe oldVal (func oldVal) msgs
 >   returnA -< newVal
 
---Update note information
-
---> updateNotes :: UISF (SEvent [Message]) [NoteInfo]
---> updateNotes = proc msgs -> do 
--->   rec notes <- delay [] -< notes'
--->       let notes' = maybe notes (updateNoteInfo notes) msgs
--->   returnA -< notes'
-
---Update Instrument Information
-
---> updateInstrument :: UISF (SEvent [Message]) InstrumentName
---> updateInstrument = proc msgs -> do 
--->   rec inst <- delay 0 -< inst'
--->       let inst' = inst
--->   returnA -< toEnum inst'
-
-
-
-
 ================================================================================
 For debugging purposes
 
