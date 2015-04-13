@@ -29,7 +29,7 @@ Takes an array of timed messages and perform visualize.
 >   let (ss, cs) = groupMsgEvents ms
 >   displaySys        -< ss
 >   displayMessages   -< ss
->   displayChannels [0..15] -< cs
+>   displayArrow      -< cs
 >   returnA -< ()
 
 MUI Params
