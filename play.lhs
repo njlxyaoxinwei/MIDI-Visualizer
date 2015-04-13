@@ -24,11 +24,12 @@
 
 > shouldClearBuffer :: BufferOperation a->Bool
 > shouldClearBuffer bop = case bop of
->   SetBufferPlayStatus _ b -> shouldClearBuffer b
->   SetBufferTempo      _ b -> shouldClearBuffer b
->   ClearBuffer             -> True
->   SkipAheadInBuffer   _   -> True
->   _                       -> False
+>   SetBufferPlayStatus True b  -> shouldClearBuffer b
+>   SetBufferPlayStatus False _ -> True
+>   SetBufferTempo      _ b     -> shouldClearBuffer b
+>   ClearBuffer                 -> True
+>   SkipAheadInBuffer   _       -> True
+>   _                           -> False
 
 
 > tempoSlider :: UISF () Double
