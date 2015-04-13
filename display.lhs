@@ -32,6 +32,13 @@ Display channel information for one channel
 >   display<<<label "Notes and Volume:" -< map (\(ap,v)->(pitch ap, v)) notes
 >   display<<<label "with" -< inst
 
+Display System information
+
+> displaySys :: UISF (SEvent [Message]) ()
+> displaySys = leftRight $ proc msgs -> do
+>   tempo <- getUpdateArrow defaultMSPB updateMSPB -< msgs
+>   display <<<label "BPM: " -< round $ 60000000 / fromIntegral tempo
+
 
 > getUpdateArrow :: a->UpdateFunc a->UISF (SEvent [Message]) a
 > getUpdateArrow def func = proc msgs -> do 

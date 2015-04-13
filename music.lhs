@@ -70,7 +70,7 @@ a channel.
 > getUpdateFunc :: (a->Message->a)->UpdateFunc a
 > getUpdateFunc func original = foldl func original
 
-Update the NoteInfo according to a new set of messages
+Update (Key, Velocity) according to a new set of messages
 
 > updateNoteInfo :: UpdateFunc [NoteInfo]
 > updateNoteInfo = getUpdateFunc updateOneNote where
@@ -80,9 +80,16 @@ Update the NoteInfo according to a new set of messages
 >                                       in insert (k,v) nis'
 >   updateOneNote nis _               = nis
 
-Update InstrumentName according to a new set of messages
+Update InstrumentName
 
 > updateInstrumentName :: UpdateFunc InstrumentName
 > updateInstrumentName = getUpdateFunc updateInst where
 >   updateInst n (ProgramChange _ x) = toEnum x
 >   updateInst n _                   = n 
+
+Update BPM
+
+> updateMSPB :: UpdateFunc Codec.Midi.Tempo
+> updateMSPB = getUpdateFunc update where
+>   update t (TempoChange x) = x
+>   update t _               = t

@@ -27,6 +27,7 @@ Takes an array of timed messages and perform visualize.
 > visualize msgs = runMUI myMUIParams $ proc _ -> do 
 >   (ms, ps) <- playMidArrow msgs -< ()
 >   let (ss, cs) = groupMsgEvents ms
+>   displaySys        -< ss
 >   displayMessages   -< ss
 >   displayChannels [0..15] -< cs
 >   returnA -< ()
