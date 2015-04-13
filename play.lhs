@@ -26,9 +26,10 @@ midi message events that are occurring at each time slot.
 >       tp<-unique<<< tempoSlider -<()
 >       (maybeMsgs, isEmpty) <- eventBuffer -< maybe bop (\x->SetBufferTempo x bop) tp
 >       let pStatus'' = if isEmpty then PStopped else pStatus'
->   midiOut-<(dev, fmap (map Std) $ checkStop bop ~++ maybeMsgs)
->   returnA-<(maybeMsgs, pStatus'')
->   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Just []
+>   let maybeMsgs' = checkStop bop ~++ maybeMsgs
+>   midiOut-<(dev, fmap (map Std) maybeMsgs')
+>   returnA-<(maybeMsgs', pStatus'')
+>   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Nothing
 
 Certain BufferOperation, when applied to the buffer, requires notes on all 
 channels to be stopped at once. 

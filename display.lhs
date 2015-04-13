@@ -24,9 +24,11 @@ Display channel information for one channel
 > displayChannel :: Channel->UISF [Message] ()
 > displayChannel c = leftRight $ label ("Channel" ++ show (c+1)) >>> proc msgs -> do 
 >   notes <- getUpdateArrow [] updateNoteInfo                       -< msgs
->   inst  <- getUpdateArrow AcousticGrandPiano updateInstrumentName -< msgs
+>   vol   <- getUpdateArrow defaultChannelVolume updateChannelVolume  -< msgs
+>   inst  <- getUpdateArrow defaultInstrumentName updateInstrumentName -< msgs
 >   -- display<<<label "Notes and Velocity:" -< map (\(ap,v)->(pitch ap, v)) notes
 >   display<<<label "Intrument: " -< inst
+>   display<<<label "Volume: " -< vol
 >   let vs = Just $ map fromIntegral $ plotVelocity notes
 >   histogram (makeLayout (Fixed 300) (Fixed 35)) -< vs
 
