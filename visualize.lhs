@@ -4,6 +4,7 @@
 
 > import Visualize.Play
 > import Visualize.Music
+> import Visualize.Display
 > import System.Environment
 > import Codec.Midi
 > import Euterpea
