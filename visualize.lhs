@@ -8,6 +8,8 @@
 > import Codec.Midi
 > import Euterpea
 
+Entry point
+
 > main = do 
 >   args <- getArgs
 >   case args of 
@@ -18,10 +20,15 @@
 >         Left s    -> putStrLn s
 >         Right mid -> (putStrLn . show . debugMidi $ mid) >> (visualize $ midiToMsgs mid)
 
+Takes an array of timed messages and perform visualize.
+
 > visualize :: [(DeltaT, Message)]->IO ()
 > visualize msgs = runMUI defaultMUIParams $ proc _ -> do 
 >   ms<-playMidArrow msgs -< ()
 >   returnA -< ()
+
+================================================================================
+For debugging purposes
 
 > debugMidi mid = (fileType mid, timeDiv mid, map (filter myFilter) $ tracks mid) where
 >   myFilter (_, NoteOn _ _ _) = False

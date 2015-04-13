@@ -6,8 +6,16 @@
 > import Euterpea.IO.MUI.MidiWidgets
 > import FRP.UISF.AuxFunctions
 
+PlayStatus is the status of the player. PlayEvent is the event of changing the 
+play status
+
 > data PlayStatus = Playing | PStopped | Paused deriving (Show, Eq)
 > data PlayEvent  = Play | PStop | Pause | PResume | PSkip DeltaT deriving (Show, Eq)
+
+playMidArrow takes an array of timed midi messages and creates a MUI that has a 
+player UI, including buttons for play/resume/stop/skip-ahead and sliders for the 
+amount to skip-ahead as well as for the playback speed. It generates a stream of 
+midi message events that are occurring at each time slot.
 
 > playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message])
 > playMidArrow msgs = proc _ -> do 
@@ -22,6 +30,9 @@
 >   returnA-<maybeMsgs
 >   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Just []
 
+Certain BufferOperation, when applied to the buffer, requires notes on all 
+channels to be stopped at once. 
+
 > shouldClearBuffer :: BufferOperation a->Bool
 > shouldClearBuffer bop = case bop of
 >   SetBufferPlayStatus True b  -> shouldClearBuffer b
@@ -31,9 +42,10 @@
 >   SkipAheadInBuffer   _       -> True
 >   _                           -> False
 
-
 > tempoSlider :: UISF () Double
 > tempoSlider = withCustomDisplay "x" $ mySlider 10 ((1/10),10) 1<<<label "Playback Speed"
+
+Button controls for playMidArrow
 
 > playButtons :: UISF PlayStatus (SEvent PlayEvent)
 > playButtons = proc ps -> do 
@@ -56,6 +68,10 @@
 >         helper2 Playing = Pause
 >         helper2 Paused  = PResume
 
+Given the timed messages to play, creates a arrow that returns the appropriate
+BufferOperation and the updated PlayStatus according to the PlayStatus and 
+PlayEvent at each time slot.
+
 > getBOp :: [(DeltaT, Message)]->UISF (PlayStatus, SEvent PlayEvent) (BufferOperation Message, PlayStatus)
 > getBOp msgs = proc (ps, pe) -> do 
 >   case (ps,pe) of
@@ -67,12 +83,18 @@
 >     _                     -> returnA -< (NoBOp, ps)
 
 
+Generates the messages for stopping all notes (control number 123) on the given
+channels.
 
 > stopAllNotes :: [Channel]->[Message]
 > stopAllNotes cs = map (\c->ControlChange c 123 0) cs
 
+Like withDisplay but allows an additional string to be appended.
+
 > withCustomDisplay :: (Show b)=>String->UISF a b->UISF a b
 > withCustomDisplay str arrow = (arrow >>^ id &&& (++str).show) >>> second displayStr >>^ fst
+
+A Slider for rationals, essentially a wrapper around hiSlider.
 
 > mySlider :: Int->(Rational, Rational)->Rational->UISF () Double
 > mySlider scale (low, high) def = let [low', high', def'] = map (truncate.(*(fromIntegral scale))) [low, high, def]
