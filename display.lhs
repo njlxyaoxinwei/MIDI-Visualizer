@@ -15,12 +15,29 @@ Process an Event of Messages, a wrapper around Visualize.Music.groupMsgs
 >   helper [] = Nothing
 >   helper xs = Just xs
 
+Display channel information from list
+
 > displayChannels :: [Channel]->UISF [SEvent [Message]] ()
 > displayChannels []     = arr (const ())
 > displayChannels (c:cs) = proc msgs -> do 
->   displayMessages    -< msgs!!c
->   displayChannels cs -< msgs
+>   display<<< updateNotes-< msgs!!c
+>   displayChannels cs    -< msgs
 
+Display note information
+
+> updateNotes :: UISF (SEvent [Message]) [NoteInfo]
+> updateNotes = proc msgs -> do 
+>   rec notes <- delay [] -< notes'
+>       let notes' = maybe notes (updateNoteInfo notes) msgs
+>   returnA -< notes'
+
+
+
+
+
+
+================================================================================
+For debugging purposes
 
 Display the messages event
 

@@ -4,6 +4,8 @@
 > import Codec.Midi
 > import Data.List
 
+> type NoteInfo = (Key, Velocity)
+
 A wrapper for dividing integers
 
 > myDiv :: (Integral a)=>a->a->Double
@@ -61,3 +63,18 @@ a channel.
 > channelSpecificFilter (ChannelPressure _ _) = True
 > channelSpecificFilter (PitchWheel    _ _  ) = True
 > channelSpecificFilter _                     = False
+
+
+Update the NoteInfo according to a new set of messages
+
+> updateNoteInfo :: [NoteInfo]->[Message]->[NoteInfo]
+> updateNoteInfo nis []       = nis
+> updateNoteInfo nis (m:msgs) = let nis' = updateOneNote nis m
+>                               in updateNoteInfo nis' msgs where
+>   updateOneNote nis (NoteOff _ k v) = deleteBy (\(k1,_) (k2,_)->k1==k2) (k,v) nis
+>   updateOneNote nis (NoteOn  _ k v) = let nis' = updateOneNote nis (NoteOff 0 k v)
+>                                       in insert (k,v) nis'
+>   updateOneNote nis _               = nis
+
+
+
