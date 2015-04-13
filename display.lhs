@@ -7,17 +7,13 @@
 
 Process an Event of Messages, a wrapper around Visualize.Music.groupMsgs
 
-> groupMsgEvents :: SEvent [Message]->(SEvent [Message], [SEvent [Message]])
-> groupMsgEvents Nothing     = let (_,cs) = groupMsgs []
->                              in (Nothing, map (const Nothing) cs)
-> groupMsgEvents (Just msgs) = let (ss, cs) = groupMsgs msgs
->                              in (helper ss, map helper cs) where
->   helper [] = Nothing
->   helper xs = Just xs
+> groupMsgEvents :: SEvent [Message]->([Message], [[Message]])
+> groupMsgEvents Nothing     = ([], replicate 16 [])
+> groupMsgEvents (Just msgs) = groupMsgs msgs
 
 Display channel information for list of channels
 
-> displayChannels :: [Channel]->UISF [SEvent [Message]] ()
+> displayChannels :: [Channel]->UISF [[Message]] ()
 > displayChannels []     = arr (const ())
 > displayChannels (c:cs) = proc msgs -> do 
 >   displayChannel c   -< msgs!!c
@@ -25,7 +21,7 @@ Display channel information for list of channels
 
 Display channel information for one channel
 
-> displayChannel :: Channel->UISF (SEvent [Message]) ()
+> displayChannel :: Channel->UISF [Message] ()
 > displayChannel c = leftRight $ label ("Channel" ++ show (c+1)) >>> proc msgs -> do 
 >   notes <- getUpdateArrow [] updateNoteInfo                       -< msgs
 >   inst  <- getUpdateArrow AcousticGrandPiano updateInstrumentName -< msgs
@@ -36,16 +32,16 @@ Display channel information for one channel
 
 Display System information
 
-> displaySys :: UISF (SEvent [Message]) ()
+> displaySys :: UISF [Message] ()
 > displaySys = leftRight $ proc msgs -> do
 >   tempo <- getUpdateArrow defaultMSPB updateMSPB -< msgs
 >   display <<<label "BPM: " -< round $ 60000000 / fromIntegral tempo
 
 
-> getUpdateArrow :: a->UpdateFunc a->UISF (SEvent [Message]) a
-> getUpdateArrow def func = proc msgs -> do 
+> getUpdateArrow :: a->UpdateFunc a->UISF [Message] a
+> getUpdateArrow def update = proc msgs -> do 
 >   rec oldVal <- delay def -< newVal
->       let newVal = maybe oldVal (func oldVal) msgs
+>       let newVal = update oldVal msgs
 >   returnA -< newVal
 
 ================================================================================
@@ -53,8 +49,9 @@ For debugging purposes
 
 Display the messages event
 
-> displayMessages :: UISF (SEvent [Message]) ()
+> displayMessages :: UISF [Message] ()
 > displayMessages = proc msgs -> do 
->   display <<< hold [] -< msgs
+>   let event = if null msgs then Nothing else Just msgs
+>   display <<< hold [] -< event
 
 
