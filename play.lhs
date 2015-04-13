@@ -33,13 +33,13 @@
 
 
 > tempoSlider :: UISF () Double
-> tempoSlider = withDisplay $ ((/10).fromIntegral)^<<hiSlider 10 (1,100) 10<<<label "Playback Speed"
+> tempoSlider = withCustomDisplay "x" $ mySlider 10 ((1/10),10) 1<<<label "Playback Speed"
 
 > playButtons :: UISF PlayStatus (SEvent PlayEvent)
 > playButtons = proc ps -> do 
 >   if ps == PStopped 
 >     then fmap (const Play) ^<< edge<<<button "play"-<()
->     else do dt<-label "Skip Ahead">>>withDisplay (hSlider (0.1,30) 1)-<()
+>     else do dt<-label "Skip Ahead">>>withCustomDisplay' " seconds" (mySlider 10 ((1/10), 30) 1)-<()
 >             (| leftRight ( do 
 >                 e1 <- do case ps of 
 >                            Playing -> edge<<<button "pause" -<()
@@ -71,3 +71,15 @@
 > stopAllNotes :: [Channel]->[Message]
 > stopAllNotes cs = map (\c->ControlChange c 123 0) cs
 
+> withCustomDisplay :: (Show b)=>String->UISF a b->UISF a b
+> withCustomDisplay str arrow = proc a -> do
+>   b<-arrow-<a
+>   displayStr -< show b ++ str
+>   returnA -< b
+
+> withCustomDisplay' str arrow = (arrow >>^ id &&& (++str).show) >>> second displayStr >>^ fst
+
+> mySlider :: Int->(Rational, Rational)->Rational->UISF () Double
+> mySlider scale (low, high) def = let [low', high', def'] = map (truncate.(*(fromIntegral scale))) [low, high, def]
+>                                      intSlider = hiSlider scale (low', high') def'
+>                                  in intSlider>>^((/fromIntegral scale).fromIntegral)
