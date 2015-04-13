@@ -2,6 +2,7 @@
 > import Euterpea
 > import Euterpea.IO.MUI.MidiWidgets
 > import Codec.Midi
+> import Data.List
 
 A wrapper for dividing integers
 
@@ -38,21 +39,18 @@ Default Microseconds Per Beat
 
 > defaultMSPB = 500000 :: Codec.Midi.Tempo
 
+Divide the array of messages into System-Wide messages and Channel-Specific 
+ones, the latter further divided into a list of 16 lists, each corresponding to
+a channel.
 
+> groupMsgs :: [Message]->([Message], [[Message]])
+> groupMsgs msgs = let (chsMsgs,sysMsgs) = partition channelSpecificFilter msgs
+>                  in  (sysMsgs, map (getMsgsByChannel chsMsgs) [0..15])
 
-
-> getMsgsByChannel :: Channel->[Message]->[Message]
-> getMsgsByChannel c [] = []
-> getMsgsByChannel c (m:ms) = let ms' = getMsgsByChannel c ms
+> getMsgsByChannel :: [Message]->Channel->[Message]
+> getMsgsByChannel []     _ = []
+> getMsgsByChannel (m:ms) c = let ms' = getMsgsByChannel ms c
 >                             in if channel m == c then m:ms' else ms'
-
-
-For Filtering out Channel-Specific Messages and System-Wide Messages
-
-> getChannelMsgs :: [Message]->[Message]
-> getChannelMsgs = filter channelSpecificFilter
-
-
 
 > channelSpecificFilter :: Message->Bool
 > channelSpecificFilter (NoteOff       _ _ _) = True

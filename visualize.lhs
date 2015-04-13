@@ -24,9 +24,15 @@ Entry point
 Takes an array of timed messages and perform visualize.
 
 > visualize :: [(DeltaT, Message)]->IO ()
-> visualize msgs = runMUI defaultMUIParams $ proc _ -> do 
->   ms<-playMidArrow msgs -< ()
+> visualize msgs = runMUI myMUIParams $ proc _ -> do 
+>   (ss, cs)<-groupMsgEvents ^<< playMidArrow msgs -< ()
+>   displayMessages   -< ss
+>   displayChannels [0..15] -< cs
 >   returnA -< ()
+
+MUI Params
+
+> myMUIParams = defaultMUIParams{uiSize=(500,700)}
 
 ================================================================================
 For debugging purposes
