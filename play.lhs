@@ -39,7 +39,7 @@
 > playButtons = proc ps -> do 
 >   if ps == PStopped 
 >     then fmap (const Play) ^<< edge<<<button "play"-<()
->     else do dt<-label "Skip Ahead">>>withCustomDisplay' " seconds" (mySlider 10 ((1/10), 30) 1)-<()
+>     else do dt<-label "Skip Ahead">>>withCustomDisplay " seconds" (mySlider 10 ((1/10), 30) 1)-<()
 >             (| leftRight ( do 
 >                 e1 <- do case ps of 
 >                            Playing -> edge<<<button "pause" -<()
@@ -72,12 +72,7 @@
 > stopAllNotes cs = map (\c->ControlChange c 123 0) cs
 
 > withCustomDisplay :: (Show b)=>String->UISF a b->UISF a b
-> withCustomDisplay str arrow = proc a -> do
->   b<-arrow-<a
->   displayStr -< show b ++ str
->   returnA -< b
-
-> withCustomDisplay' str arrow = (arrow >>^ id &&& (++str).show) >>> second displayStr >>^ fst
+> withCustomDisplay str arrow = (arrow >>^ id &&& (++str).show) >>> second displayStr >>^ fst
 
 > mySlider :: Int->(Rational, Rational)->Rational->UISF () Double
 > mySlider scale (low, high) def = let [low', high', def'] = map (truncate.(*(fromIntegral scale))) [low, high, def]
