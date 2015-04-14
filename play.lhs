@@ -11,13 +11,14 @@ play status
 
 > data PlayStatus = Playing | PStopped | Paused deriving (Show, Eq)
 > data PlayEvent  = Play | PStop | Pause | PResume | PSkip DeltaT deriving (Show, Eq)
+> data ResetDisplay = NoReset | ResetNotes | ResetAll deriving (Show, Eq)
 
 playMidArrow takes an array of timed midi messages and creates a MUI that has a 
 player UI, including buttons for play/resume/stop/skip-ahead and sliders for the 
 amount to skip-ahead as well as for the playback speed. It generates a stream of 
 midi message events that are occurring at each time slot.
 
-> playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message], PlayStatus)
+> playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message], PlayStatus, ResetDisplay)
 > playMidArrow msgs = proc _ -> do 
 >   dev<-selectOutput-<()
 >   rec pStatus <- delay PStopped -< pStatus''
@@ -28,7 +29,7 @@ midi message events that are occurring at each time slot.
 >       let pStatus'' = if isEmpty then PStopped else pStatus'
 >   let maybeMsgs' = checkStop bop ~++ maybeMsgs
 >   midiOut-<(dev, fmap (map Std) maybeMsgs')
->   returnA-<(maybeMsgs, pStatus'')
+>   returnA-<(maybeMsgs, pStatus'', getResetDisplay bop)
 >   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Nothing
 
 Certain BufferOperation, when applied to the buffer, requires notes on all 
@@ -42,6 +43,12 @@ channels to be stopped at once.
 >   ClearBuffer                 -> True
 >   SkipAheadInBuffer   _       -> True
 >   _                           -> False
+
+> getResetDisplay :: BufferOperation a->ResetDisplay
+> getResetDisplay bop = case bop of
+>   ClearBuffer             -> ResetAll
+>   SkipAheadInBuffer   _   -> ResetNotes
+>   _                       -> NoReset
 
 > tempoSlider :: UISF () Double
 > tempoSlider = withCustomDisplay "x" $ mySlider 10 ((1/10),10) 1<<<label "Playback Speed"

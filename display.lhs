@@ -17,9 +17,9 @@ Process an Event of Messages, a wrapper around Visualize.Music.groupMsgs
 
 ChannelDisplay Handler
 
-> displayArrow :: UISF ([[Message]], PlayStatus) ()
-> displayArrow = proc (cs,ps) -> do 
->   infos <- getAllChannelInfo [0..15] -< (cs,ps)
+> displayArrow :: UISF ([[Message]], ResetDisplay) ()
+> displayArrow = proc (cs,rd) -> do 
+>   infos <- getAllChannelInfo [0..15] -< (cs,rd)
 >   rec st <- delay Nothing -< st'
 >       st'<- do case st of
 >                  Nothing -> displayChannels [0..15] -< infos
@@ -29,18 +29,22 @@ ChannelDisplay Handler
 
 Process Channel Specific Messages
 
-> getAllChannelInfo :: [Channel]-> UISF ([[Message]], PlayStatus) [ChannelInfo]
+> getAllChannelInfo :: [Channel]-> UISF ([[Message]], ResetDisplay) [ChannelInfo]
 > getAllChannelInfo []     = arr (const [])
-> getAllChannelInfo (c:cs) = proc (msgs,ps) -> do 
->    info <- getChannelInfo -< (msgs!!c,ps)
->    infos<- getAllChannelInfo cs-< (msgs,ps)
+> getAllChannelInfo (c:cs) = proc (msgs,rd) -> do 
+>    info <- getChannelInfo -< (msgs!!c,rd)
+>    infos<- getAllChannelInfo cs-< (msgs,rd)
 >    returnA-< info:infos
 
-> getChannelInfo :: UISF ([Message], PlayStatus) ChannelInfo
-> getChannelInfo = proc (msgs,ps) -> do 
->   notes <- getUpdateArrow []                    updateNoteInfo       -< (msgs,ps)
->   inst  <- getUpdateArrow defaultInstrumentName updateInstrumentName -< (msgs,ps)
->   vol   <- getUpdateArrow defaultChannelVolume  updateChannelVolume  -< (msgs,ps)
+> getChannelInfo :: UISF ([Message], ResetDisplay) ChannelInfo
+> getChannelInfo = proc (msgs,rd) -> do 
+>   let (reNote, reRest) = case rd of
+>                            ResetAll  ->(True,   True)
+>                            ResetNotes->(True,  False)
+>                            _         ->(False, False)
+>   notes <- getUpdateArrow []                    updateNoteInfo       -< (msgs,reNote)
+>   inst  <- getUpdateArrow defaultInstrumentName updateInstrumentName -< (msgs,reRest)
+>   vol   <- getUpdateArrow defaultChannelVolume  updateChannelVolume  -< (msgs,reRest)
 >   returnA -< (notes, inst, vol)
 
 
@@ -85,18 +89,16 @@ Display row channel information
 
 Display System information
 
-> displaySys :: UISF ([Message],PlayStatus) ()
-> displaySys = leftRight $ proc (msgs,ps) -> do
->   tempo <- getUpdateArrow defaultMSPB updateMSPB -< (msgs, ps)
+> displaySys :: UISF ([Message],ResetDisplay) ()
+> displaySys = leftRight $ proc (msgs,rd) -> do
+>   tempo <- getUpdateArrow defaultMSPB updateMSPB -< (msgs, rd==ResetAll)
 >   display <<<label "BPM: " -< round $ 60000000 / fromIntegral tempo
 
 
-> getUpdateArrow :: a->UpdateFunc a->UISF ([Message], PlayStatus) a
-> getUpdateArrow def update = proc (msgs,ps) -> do 
+> getUpdateArrow :: a->UpdateFunc a->UISF ([Message], Bool) a
+> getUpdateArrow def update = proc (msgs,flag) -> do 
 >   rec oldVal <- delay def -< newVal
->       let newVal = case ps of 
->                      PStopped -> def
->                      _        -> update oldVal msgs
+>       let newVal = if flag then def else update oldVal msgs
 >   returnA -< newVal
 
 ================================================================================
