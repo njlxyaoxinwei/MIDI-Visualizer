@@ -19,7 +19,7 @@ Entry point
 >       file <- importFile x
 >       case file of
 >         Left s    -> putStrLn s
->         Right mid -> (putStrLn . show . debugMidi $ mid) >> (visualize $ midiToMsgs mid)
+>         Right mid -> visualize $ midiToMsgs mid
 
 Takes an array of timed messages and perform visualize.
 
