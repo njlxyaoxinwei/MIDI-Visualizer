@@ -22,9 +22,13 @@ ChannelDisplay Handler
 >   infos <- getAllChannelInfo [0..15] -< (cs,rd)
 >   rec st <- delay Nothing -< st'
 >       st'<- do case st of
->                  Nothing -> displayChannels [0..15] -< infos
+>                  Nothing -> twoColumns -< infos
 >                  Just c  -> displaySingleChannel    -< (c, infos!!c)
 >   returnA-<()
+>   where twoColumns = leftRight $ proc infos -> do 
+>           ds1<-displayChannels [0..7] -< infos
+>           ds2<-displayChannels [8..15]-< infos
+>           returnA -< maybe ds2 (const ds1) ds1
 
 
 Process Channel Specific Messages
@@ -52,7 +56,7 @@ Display channel information for list of channels
 
 > displayChannels :: [Channel]->UISF [ChannelInfo] ChannelDisplayStatus
 > displayChannels []     = arr (const Nothing)
-> displayChannels (c:cs) = proc infos -> do 
+> displayChannels (c:cs) = topDown $ proc infos -> do 
 >   e <- displayChannel c   -< infos!!c
 >   e'<- displayChannels cs -< infos
 >   case e of 
@@ -80,10 +84,10 @@ Display row channel information
 
 > displayChannel :: Channel->UISF ChannelInfo (SEvent ())
 > displayChannel c = title ("Channel "++show (c+1)) . leftRight $ proc (notes, inst, vol) -> do 
->   e<-edge<<<button "Detail"-<()
->   display -< inst
+>   e<-edge<<<setSize (70,20) (button "Detail")-<()
+>   setSize (170,20) display -< inst
 >   let vs = Just $ map fromIntegral $ 128:plotVelocity notes
->   histogram (makeLayout (Fixed 300) (Fixed 20)) -< vs
+>   histogram (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
 >   returnA -< e
 
 Display System information
