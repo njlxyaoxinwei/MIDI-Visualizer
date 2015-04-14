@@ -123,3 +123,6 @@ A Velocity Function from NoteInfo on [0..127]
 >   update (v7,v11) (ControlChange _ 7  x) = (x, v11)
 >   update (v7,v11) (ControlChange _ 11 x) = (v7,  x)
 >   update (v7,v11) _                      = (v7,v11)
+
+> getPerc :: Key->PercussionSound
+> getPerc k = toEnum (k-35)

@@ -57,7 +57,8 @@ Display channel information for list of channels
 > displayChannels :: [Channel]->UISF [ChannelInfo] ChannelDisplayStatus
 > displayChannels []     = arr (const Nothing)
 > displayChannels (c:cs) = topDown $ proc infos -> do 
->   e <- displayChannel c   -< infos!!c
+>   e <- do if c==9 then displayDrumChannel -< infos!! c 
+>                   else displayChannel c -< infos!!c
 >   e'<- displayChannels cs -< infos
 >   case e of 
 >     Nothing->returnA-<e'
@@ -89,6 +90,18 @@ Display row channel information
 >   let vs = Just $ 1:plotVolume notes vol
 >   histogram (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
 >   returnA -< e
+
+
+> displayDrumChannel :: UISF ChannelInfo (SEvent ())
+> displayDrumChannel = title "Channel 10 (Percussion)" . leftRight $ proc (notes, inst, vol) -> do
+>   e<-edge<<<setSize (70,20) (button "Detail") -< ()
+>   setSize (170,60) (topDown displayPercs) -< map (getPerc.fst) notes
+>   let vs = Just $ 1:plotVolume notes vol
+>   histogram (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
+>   returnA -< e
+>   where displayPercs = proc ps -> do if null ps then returnA -< ()
+>                                                 else do display      -< head ps
+>                                                         displayPercs -< tail ps
 
 Display System information
 
