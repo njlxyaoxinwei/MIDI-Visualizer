@@ -3,7 +3,7 @@
 > module Visualize.Display where
 > import Visualize.Play
 > import Visualize.Music
-> import HistogramUpdate (histogram')
+> import HistogramUpdate
 > import Euterpea
 > import Codec.Midi
 
