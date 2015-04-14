@@ -68,7 +68,7 @@ Display Single Channel
 >   display -< notes
 >   display -< inst
 >   display -< vol
->   let vs = Just $ map fromIntegral $ plotVelocity notes
+>   let vs = Just $ map fromIntegral $ 128:plotVelocity notes
 >   histogram (makeLayout (Stretchy 300) (Stretchy 300)) -< vs
 >   e<-edge<<<button "Back" -< ()
 >   case e of 
@@ -83,7 +83,7 @@ Display row channel information
 >   label $ "Channel "++show (c+1) -< ()
 >   e<-edge<<<button "Detail"-<()
 >   display<<<label "Intrument: " -< inst
->   let vs = Just $ map fromIntegral $ plotVelocity notes
+>   let vs = Just $ map fromIntegral $ 128:plotVelocity notes
 >   histogram (makeLayout (Fixed 300) (Fixed 35)) -< vs
 >   returnA -< e
 
