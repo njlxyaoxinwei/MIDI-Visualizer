@@ -73,7 +73,7 @@ Display Single Channel
 >   display -< notes
 >   display -< inst
 >   display -< vol
->   let vs = Just $ map fromIntegral $ 128:plotVelocity notes
+>   let vs = Just $ 1:plotVolume notes vol
 >   histogram (makeLayout (Stretchy 300) (Stretchy 300)) -< vs
 >   case e of 
 >     Nothing-> returnA-< Just c
@@ -86,7 +86,7 @@ Display row channel information
 > displayChannel c = title ("Channel "++show (c+1)) . leftRight $ proc (notes, inst, vol) -> do 
 >   e<-edge<<<setSize (70,20) (button "Detail")-<()
 >   setSize (170,20) display -< inst
->   let vs = Just $ map fromIntegral $ 128:plotVelocity notes
+>   let vs = Just $ 1:plotVolume notes vol
 >   histogram (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
 >   returnA -< e
 
