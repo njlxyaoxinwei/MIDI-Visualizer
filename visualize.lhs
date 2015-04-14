@@ -23,14 +23,32 @@ Entry point
 
 Takes an array of timed messages and perform visualize.
 
+--> visualize :: [(DeltaT, Message)]->IO ()
+--> visualize msgs = runMUI myMUIParams $ proc _ -> do 
+-->   (ms, ps, rd) <- playMidArrow msgs -< ()
+-->   let (ss, cs) = groupMsgEvents ms
+-->   displaySys        -< (ss,rd)
+-->   displayMessages   -< ss
+-->   displayArrow      -< (cs,rd)
+-->   returnA -< ()
+
 > visualize :: [(DeltaT, Message)]->IO ()
-> visualize msgs = runMUI myMUIParams $ proc _ -> do 
->   (ms, ps, rd) <- playMidArrow msgs -< ()
+> visualize msgs = msgs `seq` runMUI myMUIParams $ leftRight $ proc _ -> do 
+>   (ms, rd) <- leftPane msgs -< ()
+>   rightPane -< (ms, rd)
+>   returnA   -< ()
+
+> leftPane :: [(DeltaT, Message)]->UISF () ([[Message]], ResetDisplay)
+> leftPane msgs = topDown $ proc _ -> do 
+>   dev           <- selectOutput      -< ()
+>   (ms, ps, rd)  <- controlPanel msgs -< dev
 >   let (ss, cs) = groupMsgEvents ms
->   displaySys        -< (ss,rd)
->   displayMessages   -< ss
->   displayArrow      -< (cs,rd)
->   returnA -< ()
+>   displaySys  -< (ss, rd==ResetAll)
+>   returnA  -< (cs, rd)
+
+> rightPane :: UISF ([[Message]], ResetDisplay) ()
+> rightPane = topDown $ proc (msgs, rd) -> do 
+>   displayArrow -< (msgs, rd)
 
 MUI Params
 

@@ -13,24 +13,39 @@ play status
 > data PlayEvent  = Play | PStop | Pause | PResume | PSkip DeltaT deriving (Show, Eq)
 > data ResetDisplay = NoReset | ResetNotes | ResetAll deriving (Show, Eq)
 
+> controlPanel :: [(DeltaT, Message)]->UISF (Maybe OutputDeviceID) (SEvent [Message], PlayStatus, ResetDisplay)
+> controlPanel msgs = title "Control" $ proc dev -> do 
+>   rec pStatus             <- delay PStopped       -< pStatus''
+>       pe                  <- playButtons          -< pStatus
+>       (bop, pStatus')     <- getBOp msgs          -< (pStatus, pe)
+>       tp                  <- unique<<<tempoSlider -< ()
+>       (maybeMsgs, isEmpty)<- eventBuffer          -< maybe bop (\x->SetBufferTempo x bop) tp
+>       let pStatus'' = if isEmpty then PStopped else pStatus'
+>   let maybeMsgs' = checkStop bop ~++ maybeMsgs
+>   midiOut -< (dev, fmap (map Std) maybeMsgs')
+>   returnA -< (maybeMsgs, pStatus'', getResetDisplay bop)
+>   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Nothing
+
+
+
 playMidArrow takes an array of timed midi messages and creates a MUI that has a 
 player UI, including buttons for play/resume/stop/skip-ahead and sliders for the 
 amount to skip-ahead as well as for the playback speed. It generates a stream of 
 midi message events that are occurring at each time slot.
 
-> playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message], PlayStatus, ResetDisplay)
-> playMidArrow msgs = proc _ -> do 
->   dev<-selectOutput-<()
->   rec pStatus <- delay PStopped -< pStatus''
->       pe <- playButtons -< pStatus
->       (bop, pStatus') <- getBOp msgs -< (pStatus, pe)
->       tp<-unique<<< tempoSlider -<()
->       (maybeMsgs, isEmpty) <- eventBuffer -< maybe bop (\x->SetBufferTempo x bop) tp
->       let pStatus'' = if isEmpty then PStopped else pStatus'
->   let maybeMsgs' = checkStop bop ~++ maybeMsgs
->   midiOut-<(dev, fmap (map Std) maybeMsgs')
->   returnA-<(maybeMsgs, pStatus'', getResetDisplay bop)
->   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Nothing
+--> playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message], PlayStatus, ResetDisplay)
+--> playMidArrow msgs = proc _ -> do 
+-->   dev<-selectOutput-<()
+-->   rec pStatus <- delay PStopped -< pStatus''
+-->       pe <- playButtons -< pStatus
+-->       (bop, pStatus') <- getBOp msgs -< (pStatus, pe)
+-->       tp<-unique<<< tempoSlider -<()
+-->       (maybeMsgs, isEmpty) <- eventBuffer -< maybe bop (\x->SetBufferTempo x bop) tp
+-->       let pStatus'' = if isEmpty then PStopped else pStatus'
+-->   let maybeMsgs' = checkStop bop ~++ maybeMsgs
+-->   midiOut-<(dev, fmap (map Std) maybeMsgs')
+-->   returnA-<(maybeMsgs, pStatus'', getResetDisplay bop)
+-->   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Nothing
 
 Certain BufferOperation, when applied to the buffer, requires notes on all 
 channels to be stopped at once. 
@@ -51,7 +66,10 @@ channels to be stopped at once.
 >   _                       -> NoReset
 
 > tempoSlider :: UISF () Double
-> tempoSlider = withCustomDisplay "x" $ mySlider 10 ((1/10),10) 1<<<label "Playback Speed"
+> tempoSlider = label "Playback Speed" >>> (leftRight . withCustomDisplay "x" $ mySlider 10 ((1/10),10) 1)
+
+> deltaTSlider :: UISF () DeltaT
+> deltaTSlider = label "Skip Ahead" >>> (leftRight . withCustomDisplay " seconds" $ mySlider 10 ((1/10), 30) 1)
 
 Button controls for playMidArrow
 
@@ -59,7 +77,7 @@ Button controls for playMidArrow
 > playButtons = proc ps -> do 
 >   if ps == PStopped 
 >     then fmap (const Play) ^<< edge<<<button "play"-<()
->     else do dt<-label "Skip Ahead">>>withCustomDisplay " seconds" (mySlider 10 ((1/10), 30) 1)-<()
+>     else do dt<- deltaTSlider -<()
 >             (| leftRight ( do 
 >                 e1 <- do case ps of 
 >                            Playing -> edge<<<button "pause" -<()

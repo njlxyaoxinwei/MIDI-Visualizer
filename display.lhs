@@ -38,15 +38,15 @@ Process Channel Specific Messages
 
 > getChannelInfo :: UISF ([Message], ResetDisplay) ChannelInfo
 > getChannelInfo = proc (msgs,rd) -> do 
->   let (reNote, reRest) = case rd of
->                            ResetAll  ->(True,   True)
->                            ResetNotes->(True,  False)
->                            _         ->(False, False)
->   notes <- getUpdateArrow []                    updateNoteInfo       -< (msgs,reNote)
->   inst  <- getUpdateArrow defaultInstrumentName updateInstrumentName -< (msgs,reRest)
->   vol   <- getUpdateArrow defaultChannelVolume  updateChannelVolume  -< (msgs,reRest)
+>   let (reNotes, reChannel) = parseResetDisplay rd
+>   notes <- getUpdateArrow []                    updateNoteInfo       -< (msgs,reNotes)
+>   inst  <- getUpdateArrow defaultInstrumentName updateInstrumentName -< (msgs,reChannel)
+>   vol   <- getUpdateArrow defaultChannelVolume  updateChannelVolume  -< (msgs,reChannel)
 >   returnA -< (notes, inst, vol)
-
+>   where parseResetDisplay rd = case rd of
+>                                  ResetAll  -> (True,  True)
+>                                  ResetNotes-> (True, False)
+>                                  _         -> (False,False)
 
 Display channel information for list of channels
 
@@ -63,14 +63,14 @@ Display channel information for list of channels
 Display Single Channel 
 
 > displaySingleChannel :: UISF (Channel, ChannelInfo) ChannelDisplayStatus
-> displaySingleChannel = proc (c, (notes, inst, vol)) -> do 
+> displaySingleChannel = title "Channel Detail" $ proc (c, (notes, inst, vol)) -> do 
+>   e<-edge<<<button "Back" -< ()
 >   displayStr -< "Channel "++show (c+1)
 >   display -< notes
 >   display -< inst
 >   display -< vol
 >   let vs = Just $ map fromIntegral $ 128:plotVelocity notes
 >   histogram (makeLayout (Stretchy 300) (Stretchy 300)) -< vs
->   e<-edge<<<button "Back" -< ()
 >   case e of 
 >     Nothing-> returnA-< Just c
 >     Just _ -> returnA-< Nothing
@@ -79,20 +79,19 @@ Display Single Channel
 Display row channel information
 
 > displayChannel :: Channel->UISF ChannelInfo (SEvent ())
-> displayChannel c = leftRight $ proc (notes, inst, vol) -> do 
->   label $ "Channel "++show (c+1) -< ()
+> displayChannel c = title ("Channel "++show (c+1)) . leftRight $ proc (notes, inst, vol) -> do 
 >   e<-edge<<<button "Detail"-<()
->   display<<<label "Intrument: " -< inst
+>   display -< inst
 >   let vs = Just $ map fromIntegral $ 128:plotVelocity notes
->   histogram (makeLayout (Fixed 300) (Fixed 35)) -< vs
+>   histogram (makeLayout (Stretchy 300) (Stretchy 35)) -< vs
 >   returnA -< e
 
 Display System information
 
-> displaySys :: UISF ([Message],ResetDisplay) ()
-> displaySys = leftRight $ proc (msgs,rd) -> do
->   tempo <- getUpdateArrow defaultMSPB updateMSPB -< (msgs, rd==ResetAll)
->   display <<<label "BPM: " -< round $ 60000000 / fromIntegral tempo
+> displaySys :: UISF ([Message],Bool) ()
+> displaySys = title "System Info" $ proc (msgs,flag) -> do
+>   tempo <- getUpdateArrow defaultMSPB updateMSPB -< (msgs, flag)
+>   leftRight (display <<<label "BPM: ") -< round $ 60000000 / fromIntegral tempo
 
 
 > getUpdateArrow :: a->UpdateFunc a->UISF ([Message], Bool) a
