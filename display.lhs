@@ -83,7 +83,7 @@ Display row channel information
 >   e<-edge<<<button "Detail"-<()
 >   display -< inst
 >   let vs = Just $ map fromIntegral $ 128:plotVelocity notes
->   histogram (makeLayout (Stretchy 300) (Stretchy 35)) -< vs
+>   histogram (makeLayout (Fixed 300) (Fixed 20)) -< vs
 >   returnA -< e
 
 Display System information
