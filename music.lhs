@@ -116,7 +116,7 @@ A Velocity Function from NoteInfo on [0..127]
 >   plot' 128 _             = []
 >   plot' k []              = 0:plot' (k+1) []
 >   plot' k nis@((k',v):ns) = if k==k' then ((fromIntegral v*e):plot' (k+1) ns)
->                                              else (0:plot' (k+1) nis)
+>                                      else (0:plot' (k+1) nis)
 
 > updateChannelVolume :: UpdateFunc ChannelVolume
 > updateChannelVolume = getUpdateFunc update where
@@ -126,3 +126,8 @@ A Velocity Function from NoteInfo on [0..127]
 
 > getPerc :: Key->PercussionSound
 > getPerc k = toEnum (k-35)
+
+> plotPercussion :: [Double]->[(Double, String)]
+> plotPercussion vs = let slice = take 47 . drop 35 $ vs
+>                         ps    = map toEnum [0..46] :: [PercussionSound]
+>                     in  zip slice (map show ps)

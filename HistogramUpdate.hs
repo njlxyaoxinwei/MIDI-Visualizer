@@ -30,8 +30,8 @@ histogram' layout =
 
 
 -- | The histogramWithScale widget creates a histogram and an x coordinate scale.
-histogramWithScale :: RealFrac a => Layout -> UISF (SEvent [(a,String)]) ()
-histogramWithScale layout = 
+histogramWithScale' :: RealFrac a => Layout -> UISF (SEvent [(a,String)]) ()
+histogramWithScale' layout = 
   mkWidget Nothing layout process draw
   where process Nothing Nothing  _ _ = ((), Nothing, False)
         process Nothing (Just a) _ _ = ((), Just a, False) --TODO check if this should be True
