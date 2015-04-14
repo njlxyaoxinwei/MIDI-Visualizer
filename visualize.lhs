@@ -23,15 +23,6 @@ Entry point
 
 Takes an array of timed messages and perform visualize.
 
---> visualize :: [(DeltaT, Message)]->IO ()
---> visualize msgs = runMUI myMUIParams $ proc _ -> do 
--->   (ms, ps, rd) <- playMidArrow msgs -< ()
--->   let (ss, cs) = groupMsgEvents ms
--->   displaySys        -< (ss,rd)
--->   displayMessages   -< ss
--->   displayArrow      -< (cs,rd)
--->   returnA -< ()
-
 > visualize :: [(DeltaT, Message)]->IO ()
 > visualize msgs = msgs `seq` runMUI myMUIParams $ leftRight $ proc _ -> do 
 >   (ms, rd) <- leftPane msgs -< ()

@@ -33,20 +33,6 @@ player UI, including buttons for play/resume/stop/skip-ahead and sliders for the
 amount to skip-ahead as well as for the playback speed. It generates a stream of 
 midi message events that are occurring at each time slot.
 
---> playMidArrow :: [(DeltaT, Message)]->UISF () (SEvent [Message], PlayStatus, ResetDisplay)
---> playMidArrow msgs = proc _ -> do 
--->   dev<-selectOutput-<()
--->   rec pStatus <- delay PStopped -< pStatus''
--->       pe <- playButtons -< pStatus
--->       (bop, pStatus') <- getBOp msgs -< (pStatus, pe)
--->       tp<-unique<<< tempoSlider -<()
--->       (maybeMsgs, isEmpty) <- eventBuffer -< maybe bop (\x->SetBufferTempo x bop) tp
--->       let pStatus'' = if isEmpty then PStopped else pStatus'
--->   let maybeMsgs' = checkStop bop ~++ maybeMsgs
--->   midiOut-<(dev, fmap (map Std) maybeMsgs')
--->   returnA-<(maybeMsgs, pStatus'', getResetDisplay bop)
--->   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Nothing
-
 Certain BufferOperation, when applied to the buffer, requires notes on all 
 channels to be stopped at once. 
 
@@ -69,7 +55,7 @@ channels to be stopped at once.
 > tempoSlider = label "Playback Speed" >>> (leftRight . withCustomDisplay "x" $ mySlider 10 ((1/10),10) 1)
 
 > deltaTSlider :: UISF () DeltaT
-> deltaTSlider = label "Skip Ahead" >>> (leftRight . withCustomDisplay " seconds" $ mySlider 10 ((1/10), 30) 1)
+> deltaTSlider = label "Skip Ahead" >>> (leftRight . withCustomDisplay "s" $ mySlider 10 ((1/10), 30) 1)
 
 Button controls for playMidArrow
 
@@ -118,7 +104,10 @@ channels.
 Like withDisplay but allows an additional string to be appended.
 
 > withCustomDisplay :: (Show b)=>String->UISF a b->UISF a b
-> withCustomDisplay str arrow = (arrow >>^ id &&& (++str).show) >>> second displayStr >>^ fst
+> withCustomDisplay str arrow = proc a -> do 
+>   b <- arrow -< a
+>   setSize (50,10) displayStr -< show b ++ str
+>   returnA                    -< b
 
 A Slider for rationals, essentially a wrapper around hiSlider.
 
