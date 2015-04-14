@@ -3,6 +3,7 @@
 > module Visualize.Display where
 > import Visualize.Play
 > import Visualize.Music
+> import HistogramUpdate (histogram')
 > import Euterpea
 > import Codec.Midi
 
@@ -74,8 +75,8 @@ Display Single Channel
 >   display -< notes
 >   display -< inst
 >   display -< vol
->   let vs = Just $ 1:plotVolume notes vol
->   histogram (makeLayout (Stretchy 300) (Stretchy 300)) -< vs
+>   let vs = Just $ plotVolume notes vol
+>   histogram' (makeLayout (Stretchy 300) (Stretchy 300)) -< vs
 >   case e of 
 >     Nothing-> returnA-< Just c
 >     Just _ -> returnA-< Nothing
@@ -87,21 +88,19 @@ Display row channel information
 > displayChannel c = title ("Channel "++show (c+1)) . leftRight $ proc (notes, inst, vol) -> do 
 >   e<-edge<<<setSize (70,20) (button "Detail")-<()
 >   setSize (170,20) display -< inst
->   let vs = Just $ 1:plotVolume notes vol
->   histogram (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
+>   let vs = Just $ plotVolume notes vol
+>   histogram' (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
 >   returnA -< e
 
 
 > displayDrumChannel :: UISF ChannelInfo (SEvent ())
 > displayDrumChannel = title "Channel 10 (Percussion)" . leftRight $ proc (notes, inst, vol) -> do
 >   e<-edge<<<setSize (70,20) (button "Detail") -< ()
->   setSize (170,60) (topDown displayPercs) -< map (getPerc.fst) notes
->   let vs = Just $ 1:plotVolume notes vol
->   histogram (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
+>   setSize (170,20) display -< Percussion
+>   let vs = Just $ plotVolume notes vol
+>   histogram' (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
 >   returnA -< e
->   where displayPercs = proc ps -> do if null ps then returnA -< ()
->                                                 else do display      -< head ps
->                                                         displayPercs -< tail ps
+
 
 Display System information
 
