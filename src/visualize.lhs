@@ -2,11 +2,10 @@
 
 > module Main where
 
-> import Visualize.Play
-> import Visualize.Music
-> import Visualize.Display
-> import System.Environment
-> import Codec.Midi
+> import Visualize.Play (controlPanel)
+> import Visualize.Music (groupMsgs, midiToMsgs)
+> import Visualize.Display (displayArrow, displaySys, ResetDisplay(ResetAll))
+> import System.Environment (getArgs)
 > import Euterpea
 
 Entry point
@@ -36,6 +35,8 @@ Takes an array of timed messages and perform visualize.
 >   let (ss, cs) = groupMsgEvents ms
 >   displaySys  -< (ss, rd==ResetAll)
 >   returnA  -< (cs, rd)
+>   where groupMsgEvents Nothing     = ([], replicate 16 [])
+>         groupMsgEvents (Just msgs) = groupMsgs msgs
 
 > rightPane :: UISF ([[Message]], ResetDisplay) ()
 > rightPane = topDown $ proc (msgs, rd) -> do 
@@ -48,13 +49,13 @@ MUI Params
 ================================================================================
 For debugging purposes
 
-> debugMidi mid = (fileType mid, timeDiv mid, map (filter myFilter) $ tracks mid) where
->   myFilter (_, NoteOn _ _ _) = False
->   myFilter (_, NoteOff _ _ _) = False
->   myFilter (_, Reserved _ _) = False
->   myFilter (_, Text _) = False
->   myFilter (_, ControlChange _ _ _) = False
->   myFilter (_, ProgramChange _ _) = True
->   myFilter (_, TempoChange _) = True
->   myFilter _ = False
+--> debugMidi mid = (fileType mid, timeDiv mid, map (filter myFilter) $ tracks mid) where
+-->   myFilter (_, NoteOn _ _ _) = False
+-->   myFilter (_, NoteOff _ _ _) = False
+-->   myFilter (_, Reserved _ _) = False
+-->   myFilter (_, Text _) = False
+-->   myFilter (_, ControlChange _ _ _) = False
+-->   myFilter (_, ProgramChange _ _) = True
+-->   myFilter (_, TempoChange _) = True
+-->   myFilter _ = False
 

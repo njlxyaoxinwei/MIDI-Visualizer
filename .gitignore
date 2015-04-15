@@ -2,3 +2,8 @@
 *.o
 visualize
 *.mid
+.cabal-sandbox/*
+Makefile
+cabal.sandbox.config
+dist/*
+

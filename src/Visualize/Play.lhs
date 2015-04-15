@@ -1,17 +1,22 @@
 > {-# LANGUAGE Arrows #-}
 
-> module Visualize.Play where
+> module Visualize.Play (
+>   PlayStatus(..), PlayEvent(..),
+>   controlPanel, 
+>   playButtons, getBOp, 
+>   mySlider, withCustomDisplay, tempoSlider, deltaTSlider,
+>   stopAllNotes
+>  ) where
+> import Visualize.Display (ResetDisplay(..))
 > import Euterpea
-> import Codec.Midi
-> import Euterpea.IO.MUI.MidiWidgets
-> import FRP.UISF.AuxFunctions
+> import Codec.Midi (Message, Channel)
+> import FRP.UISF.AuxFunctions (eventBuffer)
 
 PlayStatus is the status of the player. PlayEvent is the event of changing the 
 play status
 
 > data PlayStatus = Playing | PStopped | Paused deriving (Show, Eq)
 > data PlayEvent  = Play | PStop | Pause | PResume | PSkip DeltaT deriving (Show, Eq)
-> data ResetDisplay = NoReset | ResetNotes | ResetAll deriving (Show, Eq)
 
 > controlPanel :: [(DeltaT, Message)]->UISF (Maybe OutputDeviceID) (SEvent [Message], PlayStatus, ResetDisplay)
 > controlPanel msgs = title "Control" $ proc dev -> do 

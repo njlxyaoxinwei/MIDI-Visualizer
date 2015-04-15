@@ -5,6 +5,32 @@ a haskell program for visualizing midi files, final project of Yale University C
 ## Dependencies
 
 - [Euterpea v1.0.0](https://github.com/Euterpea/Euterpea)
+- [UISF v0.3.0.1](https://hackage.haskell.org/package/UISF)
+- [HCodecs v0.5](https://hackage.haskell.org/package/HCodecs)
+
+## Building
+
+```
+cabal install --dependencies-only
+cabal configure
+cabal build
+```
+
+The executable lies in
+```
+dist/build/visualize/visualize
+```
+
+If you run into the following error
+```
+/usr/bin/ld: /home/dydyd/.cabal/lib/x86_64-linux-ghc-7.8.3/PortMidi-0.1.3/libHSPortMidi-0.1.3.a(ptlinux.o): undefined reference to symbol 'pthread_create@@GLIBC_2.2.5'
+//lib/x86_64-linux-gnu/libpthread.so.0: error adding symbols: DSO missing from command line
+collect2: error: ld returned 1 exit status
+```
+Please run the following additional flag
+```
+cabal build --ghc-options=-optl-pthread
+```
 
 ## Usage
 
