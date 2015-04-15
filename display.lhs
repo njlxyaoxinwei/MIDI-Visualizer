@@ -8,7 +8,7 @@
 > import Codec.Midi
 
 > type ChannelDisplayStatus = Maybe Channel -- Nothing: display all
-> type ChannelInfo = ([NoteInfo], InstrumentName, ChannelVolume)
+
 
 Process an Event of Messages, a wrapper around Visualize.Music.groupMsgs
 
@@ -70,12 +70,12 @@ Display channel information for list of channels
 Display Single Channel 
 
 > displaySingleChannel :: UISF (Channel, ChannelInfo) ChannelDisplayStatus
-> displaySingleChannel = title "Channel Detail" $ proc (c, (notes, inst, vol)) -> do 
->   e<-edge<<<button "Back" -< ()
->   displayStr -< "Channel "++show (c+1)
->   display -< notes
->   display -< inst
->   display -< vol
+> displaySingleChannel = title "Channel Detail" $ proc (c, (notes, inst, vol@(v7,v11))) -> do 
+>   e<-backButton-<c
+>   leftRight $ display <<< label "Channel Volume (0-127): "        -< v7
+>   leftRight $ display <<< label "Current Keys and Velocity (0-127): " -< notes
+>   (| leftRight (do display <<< label "Current Instrument: "            -< inst
+>                    display <<< label "Instrument Expression (0-127): " -< v11)|)
 >   let vs = Just $ plotVolume notes vol
 >   histogram' (makeLayout (Stretchy 300) (Stretchy 300)) -< vs
 >   case e of 
@@ -84,8 +84,7 @@ Display Single Channel
 
 > displaySingleDrumChannel :: UISF ChannelInfo ChannelDisplayStatus
 > displaySingleDrumChannel = title "Percussion Channel Detail" $ proc (notes, _, vol) -> do 
->   e<-edge<<<button "Back" -<()
->   display -< notes
+>   e<-backButton-<9
 >   display -< vol
 >   let vs = toPercussionPlot . plotVolume notes $ vol
 >   displayDrumHist -< vs
@@ -106,6 +105,11 @@ Display Single Channel
 >                         take l . drop (2*l) $ vs, 
 >                         drop (3*l) vs)
 
+> backButton :: UISF Channel (SEvent ())
+> backButton = leftRight $ proc c -> do 
+>   e<-setSize (70,20) $ edge<<<button "Back" -< ()
+>   displayStr -< "Channel " ++ show (c+1)
+>   returnA    -< e
 
 Display row channel information
 

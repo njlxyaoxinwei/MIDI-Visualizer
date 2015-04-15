@@ -8,6 +8,7 @@
 > type UpdateFunc a = a->[Message]->a
 > type ChannelVolume = (Int, Int)  --Correspond to Controller 7 and 11 
 > type SystemInfo = (String, String, KeySig, TimeSig, Codec.Midi.Tempo)  --Text, Lyric, ...
+> type ChannelInfo = ([NoteInfo], InstrumentName, ChannelVolume)
 > type KeySig = (PitchClass, Mode)
 > type TimeSig = (Int, Int)
 
