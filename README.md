@@ -5,6 +5,21 @@ a haskell program for visualizing midi files, final project of Yale University C
 ## Dependencies
 
 - [Euterpea v1.0.0](https://github.com/Euterpea/Euterpea)
+- [UISF v0.3.0.1](https://hackage.haskell.org/package/UISF)
+- [HCodecs v0.5](https://hackage.haskell.org/package/HCodecs)
+
+## Building
+
+```
+cabal install --dependencies-only
+cabal configure
+cabal build
+```
+
+The executable lies in
+```
+dist/build/visualize/visualize
+```
 
 ## Usage
 
