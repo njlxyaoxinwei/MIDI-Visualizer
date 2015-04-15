@@ -72,7 +72,7 @@ Display Single Channel
 > displaySingleChannel :: UISF (Channel, ChannelInfo) ChannelDisplayStatus
 > displaySingleChannel = title "Channel Detail" $ proc (c, (notes, inst, vol@(v7,v11))) -> do 
 >   e<-backButton-<c
->   leftRight $ display <<< label "Channel Volume (0-127): "        -< v7
+>   leftRight $ display <<< label "Channel Volume (0-127): "            -< v7
 >   leftRight $ display <<< label "Current Keys and Velocity (0-127): " -< notes
 >   (| leftRight (do display <<< label "Current Instrument: "            -< inst
 >                    display <<< label "Instrument Expression (0-127): " -< v11)|)
@@ -83,9 +83,11 @@ Display Single Channel
 >     Just _ -> returnA-< Nothing
 
 > displaySingleDrumChannel :: UISF ChannelInfo ChannelDisplayStatus
-> displaySingleDrumChannel = title "Percussion Channel Detail" $ proc (notes, _, vol) -> do 
+> displaySingleDrumChannel = title "Percussion Channel Detail" $ proc (notes, _, vol@(v7,v11)) -> do 
 >   e<-backButton-<9
->   display -< vol
+>   (| leftRight (do display <<< label "Channel Volume (0-127): "             -< v7
+>                    display <<< label "Instrument Expression (0-127): "      -< v11)|)
+>   leftRight $ display <<< label "Current Sound and Velocity (0-127): " -< map (\(k,v)->(getPerc k, v)) notes
 >   let vs = toPercussionPlot . plotVolume notes $ vol
 >   displayDrumHist -< vs
 >   case e of

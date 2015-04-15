@@ -23,7 +23,7 @@ play status
 >       let pStatus'' = if isEmpty then PStopped else pStatus'
 >   let maybeMsgs' = checkStop bop ~++ maybeMsgs
 >   midiOut -< (dev, fmap (map Std) maybeMsgs')
->   returnA -< (maybeMsgs, pStatus'', getResetDisplay bop)
+>   returnA -< (maybeMsgs, pStatus'', if isEmpty then ResetAll else getResetDisplay bop)
 >   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Nothing
 
 
