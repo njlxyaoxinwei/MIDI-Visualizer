@@ -46,7 +46,7 @@ play status
 >                (PStopped,_)->Just (const 0)
 >                _->Nothing
 >   prog <- accum 0 -< func
->   displayTrack -< (truncate prog, truncate l)
+>   displayTrack -< (truncate prog, ceiling l)
 >   returnA      -< ()
 >   where displayTrack = leftRight $ proc (p, l) -> do 
 >           displayTime-< p
