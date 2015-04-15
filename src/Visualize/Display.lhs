@@ -8,8 +8,8 @@
 > ) where
 > import Visualize.Music
 > import HistogramUpdate
-> import Euterpea
-> import Codec.Midi (Message, Channel)
+> import Euterpea hiding (Tempo)
+> import Codec.Midi (Message, Channel, Tempo)
 
 > type ChannelDisplayStatus = Maybe Channel -- Nothing: display all
 > data ResetDisplay = NoReset | ResetNotes | ResetAll deriving (Show, Eq)
