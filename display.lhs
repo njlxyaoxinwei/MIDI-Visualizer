@@ -88,24 +88,23 @@ Display Single Channel
 >   display -< notes
 >   display -< vol
 >   let vs = plotPercussion . plotVolume notes $ vol
->   title "Percussion Instruments" displayDrumHist -< vs
+>   displayDrumHist -< vs
 >   case e of
 >     Nothing -> returnA -< Just 9
 >     Just _  -> returnA -< Nothing
 
 > displayDrumHist :: UISF [(Double, String)] ()
-> displayDrumHist = let drumLayout = makeLayout (Fixed 250) (Stretchy 75)
+> displayDrumHist = let drumLayout = makeLayout (Stretchy 300) (Stretchy 75)
 >                   in proc vs -> do 
 >   let (r1,r2,r3,r4) = divide vs
->   histogramWithScale' drumLayout -< Just (stub r1)
->   histogramWithScale' drumLayout -< Just (stub r2)
->   histogramWithScale' drumLayout -< Just (stub r3)
->   histogramWithScale' drumLayout -< Just (stub r4)
+>   histogramWithScale' drumLayout -< Just r1
+>   histogramWithScale' drumLayout -< Just r2
+>   histogramWithScale' drumLayout -< Just r3
+>   histogramWithScale' drumLayout -< Just r4
 >   where divide vs = let l = length vs `div` 4
 >                     in (take l vs, take l . drop l $ vs, 
 >                         take l . drop (2*l) $ vs, 
 >                         drop (3*l) vs)
->         stub vs = (0, ""):vs ++ [(0, "")]
 
 
 Display row channel information
