@@ -7,6 +7,9 @@
 > type NoteInfo = (Key, Velocity)
 > type UpdateFunc a = a->[Message]->a
 > type ChannelVolume = (Int, Int)  --Correspond to Controller 7 and 11 
+> type SystemInfo = (String, String, KeySig, TimeSig, Codec.Midi.Tempo)  --Text, Lyric, ...
+> type KeySig = (PitchClass, Mode)
+> type TimeSig = (Int, Int)
 
 
 A wrapper for dividing integers
@@ -54,6 +57,14 @@ Default Values
 3. Default InstrumentName 
 
 > defaultInstrumentName = AcousticGrandPiano
+
+4. Default TimeSignature
+
+> defaultTimeSig = (4,4) :: TimeSig
+
+5. Default Key Signature
+
+> defaultKeySig = (C, Major) :: KeySig
 
 Divide the array of messages into System-Wide messages and Channel-Specific 
 ones, the latter further divided into a list of 16 lists, each corresponding to
@@ -103,10 +114,10 @@ Update InstrumentName
 
 Update BPM
 
-> updateMSPB :: UpdateFunc Codec.Midi.Tempo
-> updateMSPB = getUpdateFunc update where
->   update t (TempoChange x) = x
->   update t _               = t
+--> updateMSPB :: UpdateFunc Codec.Midi.Tempo
+--> updateMSPB = getUpdateFunc update where
+-->   update t (TempoChange x) = x
+-->   update t _               = t
 
 A Velocity Function from NoteInfo on [0..127]
 
@@ -127,7 +138,27 @@ A Velocity Function from NoteInfo on [0..127]
 > getPerc :: Key->PercussionSound
 > getPerc k = toEnum (k-35)
 
-> plotPercussion :: [Double]->[(Double, String)]
-> plotPercussion vs = let slice = take 47 . drop 35 $ vs
->                         ps    = map toEnum [0..46] :: [PercussionSound]
->                     in  zip slice (map show ps)
+> toPercussionPlot :: [Double]->[(Double, String)]
+> toPercussionPlot vs = let slice = take 47 . drop 35 $ vs
+>                           ps    = map toEnum [0..46] :: [PercussionSound]
+>                       in  zip slice (map show ps)
+
+
+> updateSystemInfo :: UpdateFunc SystemInfo
+> updateSystemInfo = getUpdateFunc update where
+>   update (_,l,(p,m),(a,b),x ) (Text   s)              = (s, l, (p,m), (a,b), x)
+>   update (t,_,(p,m),(a,b),x ) (Lyrics s)              = (t, s, (p,m), (a,b), x)
+>   update (t,l,(p,m),_    ,x ) (TimeSignature a b _ _) = (t, l, (p,m), (getTimeSig a b), x)
+>   update (t,l,_    ,(a,b),x ) (KeySignature p m)      = (t, l, (getKeySig p m), (a,b), x)
+>   update (t,l,(p,m),(a,b),_ ) (TempoChange x)         = (t, l, (p,m), (a,b), x)
+>   update (t,l,(p,m),(a,b),x ) _                       = (t, l, (p,m), (a,b), x)                  
+ 
+> getTimeSig :: Int->Int->TimeSig
+> getTimeSig a b = (a, 2^b)
+
+> getKeySig :: Int->Int->KeySig
+> getKeySig a 0 = (majorKeyList!!(a+7), Major)
+> getKeySig a 1 = (minorKeyList!!(a+7), Minor)
+
+> majorKeyList = [Cf, Gf, Df, Af, Ef, Bf, F, C, G, D, A, E, B, Fs, Cs]
+> minorKeyList = [Af, Ef, Bf, F, C, G, D, A, E, B, Fs, Cs, Gs, Ds, As]

@@ -87,7 +87,7 @@ Display Single Channel
 >   e<-edge<<<button "Back" -<()
 >   display -< notes
 >   display -< vol
->   let vs = plotPercussion . plotVolume notes $ vol
+>   let vs = toPercussionPlot . plotVolume notes $ vol
 >   displayDrumHist -< vs
 >   case e of
 >     Nothing -> returnA -< Just 9
@@ -131,8 +131,16 @@ Display System information
 
 > displaySys :: UISF ([Message],Bool) ()
 > displaySys = title "System Info" $ proc (msgs,flag) -> do
->   tempo <- getUpdateArrow defaultMSPB updateMSPB -< (msgs, flag)
->   leftRight (display <<<label "BPM: ") -< round $ 60000000 / fromIntegral tempo
+>   (t, l, (p, m), (a,b),x) <- getUpdateArrow ("","",defaultKeySig, defaultTimeSig,defaultMSPB) updateSystemInfo -< (msgs, flag)
+>   (| leftRight (do display <<< label "BPM: "            -< round $ 60000000 / fromIntegral x 
+>                    display <<< label "Time Signature: " -< a
+>                    display <<< label "/"                -< b)|)
+>   leftRight $ displayStr <<< (\(p,m)->show' p ++ " " ++ show m) ^<< label "Key Signature: " -< (p,m)
+>   leftRight $ displayStr <<< label "Text: "                                                 -< t
+>   leftRight $ displayStr <<< label "Lyrics: "                                               -< l
+>   where show' p = case p of
+>                     Af->"Ab"; Bf->"Bb"; Cf->"Cb"; Df->"Db"; Ef->"Eb"; Gf->"Gb"
+>                     As->"A#"; Cs->"C#"; Ds->"D#"; Fs->"F#"; Gs->"Gs"; _ ->show p
 
 
 > getUpdateArrow :: a->UpdateFunc a->UISF ([Message], Bool) a
