@@ -119,7 +119,7 @@ Display row channel information
 >   e<-edge<<<setSize (70,20) (button "Detail")-<()
 >   setSize (170,20) display -< inst
 >   let vs = Just $ plotVolume notes vol
->   histogram' (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
+>   histogram' (makeLayout (Stretchy 200) (Stretchy 20)) -< vs
 >   returnA -< e
 
 
@@ -128,7 +128,7 @@ Display row channel information
 >   e<-edge<<<setSize (70,20) (button "Detail") -< ()
 >   setSize (170,20) display -< Percussion
 >   let vs = Just $ plotVolume notes vol
->   histogram' (makeLayout (Stretchy 300) (Stretchy 25)) -< vs
+>   histogram' (makeLayout (Stretchy 200) (Stretchy 20)) -< vs
 >   returnA -< e
 
 

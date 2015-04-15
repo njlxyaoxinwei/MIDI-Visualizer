@@ -26,11 +26,37 @@ play status
 >       tp                  <- unique<<<tempoSlider -< ()
 >       (maybeMsgs, isEmpty)<- eventBuffer          -< maybe bop (\x->SetBufferTempo x bop) tp
 >       let pStatus'' = if isEmpty then PStopped else pStatus'
+>   trackProgress songLength -< (pStatus'',pe, tp)
 >   let maybeMsgs' = checkStop bop ~++ maybeMsgs
 >   midiOut -< (dev, fmap (map Std) maybeMsgs')
 >   returnA -< (maybeMsgs, pStatus'', if isEmpty then ResetAll else getResetDisplay bop)
 >   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Nothing
+>         songLength = sum $ map fst msgs
 
+> trackProgress :: DeltaT->UISF (PlayStatus, SEvent PlayEvent, SEvent DeltaT) ()
+> trackProgress l = proc (ps,pe,tp) -> do 
+>   t     <- getTime -<()
+>   t'    <- delay 0 -< t
+>   speed <- hold 1  -< tp
+>   let delta = t-t'
+>   let func = case (ps,pe) of
+>                (Playing, Just (PSkip d))->Just (+(delta*speed+d))
+>                (Paused,  Just (PSkip d))->Just (+d)
+>                (Playing,_)->Just (+delta*speed)
+>                (PStopped,_)->Just (const 0)
+>                _->Nothing
+>   prog <- accum 0 -< func
+>   displayTrack -< (truncate prog, ceiling l)
+>   returnA      -< ()
+>   where displayTrack = leftRight $ proc (p, l) -> do 
+>           displayTime-< p
+>           label "/" -< ()
+>           displayTime-< l
+>         displayTime = leftRight $ proc t -> do 
+>           displayStr -< show' $ t `div` 60
+>           label ":" -< ()
+>           displayStr -< show' $ t `mod` 60
+>         show' x = if x<10 then '0':show x else show x
 
 
 playMidArrow takes an array of timed midi messages and creates a MUI that has a 
