@@ -53,9 +53,10 @@ play status
 >           label "/" -< ()
 >           displayTime-< l
 >         displayTime = leftRight $ proc t -> do 
->           display -< t `div` 60
+>           displayStr -< show' $ t `div` 60
 >           label ":" -< ()
->           display -< t `mod` 60
+>           displayStr -< show' $ t `mod` 60
+>         show' x = if x<10 then '0':show x else show x
 
 
 playMidArrow takes an array of timed midi messages and creates a MUI that has a 
