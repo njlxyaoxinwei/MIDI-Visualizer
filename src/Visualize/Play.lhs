@@ -26,12 +26,17 @@ play status
 >       tp                  <- unique<<<tempoSlider -< ()
 >       (maybeMsgs, isEmpty)<- eventBuffer          -< maybe bop (\x->SetBufferTempo x bop) tp
 >       let pStatus'' = if isEmpty then PStopped else pStatus'
+>   trackProgress songLength -< pe
 >   let maybeMsgs' = checkStop bop ~++ maybeMsgs
 >   midiOut -< (dev, fmap (map Std) maybeMsgs')
 >   returnA -< (maybeMsgs, pStatus'', if isEmpty then ResetAll else getResetDisplay bop)
 >   where checkStop bop = if shouldClearBuffer bop then Just (stopAllNotes [0..15]) else Nothing
+>         songLength = sum $ map fst msgs
 
-
+> trackProgress :: DeltaT->UISF (SEvent PlayEvent) ()
+> trackProgress l = proc pe -> do 
+>   t     <- getTime -<()
+>   display -< t
 
 playMidArrow takes an array of timed midi messages and creates a MUI that has a 
 player UI, including buttons for play/resume/stop/skip-ahead and sliders for the 
