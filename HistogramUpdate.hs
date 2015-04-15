@@ -46,7 +46,7 @@ histogramWithScale' layout =
                 topbuffer = truncate $ fromIntegral h / 10
                 bottombuffer = max 20 topbuffer
                 sidebuffer = 80
-                mkScale l = foldl (\pg (x,s) -> translateGraphic xy (withColor Black (text (x-((8*length s) `div` 2), h-12) s)) // pg) 
+                mkScale l = foldl (\pg (x,s) -> translateGraphic xy (withColor Black (text (x-((8*length s) `div` 2), h-16) s)) // pg) 
                                   nullGraphic $ zip (xs $ length l) l
                 mymap :: ([a] -> Graphic) -> ([String] -> Graphic) -> SEvent [(a,String)] -> Graphic
                 mymap f g (Just lst@(_:_)) = let (fl,gl) = unzip lst in g gl // translateGraphic xy (f fl)
