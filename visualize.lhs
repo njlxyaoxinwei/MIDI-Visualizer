@@ -19,22 +19,31 @@ Entry point
 >       file <- importFile x
 >       case file of
 >         Left s    -> putStrLn s
->         Right mid -> (putStrLn . show . debugMidi $ mid) >> (visualize $ midiToMsgs mid)
+>         Right mid -> visualize $ midiToMsgs mid
 
 Takes an array of timed messages and perform visualize.
 
 > visualize :: [(DeltaT, Message)]->IO ()
-> visualize msgs = runMUI myMUIParams $ proc _ -> do 
->   (ms, ps) <- playMidArrow msgs -< ()
+> visualize msgs = msgs `seq` runMUI myMUIParams $ leftRight $ proc _ -> do 
+>   (ms, rd) <- setSize (350,925) (leftPane msgs) -< ()
+>   rightPane -< (ms, rd)
+>   returnA   -< ()
+
+> leftPane :: [(DeltaT, Message)]->UISF () ([[Message]], ResetDisplay)
+> leftPane msgs = topDown $ proc _ -> do 
+>   dev           <- selectOutput      -< ()
+>   (ms, ps, rd)  <- controlPanel msgs -< dev
 >   let (ss, cs) = groupMsgEvents ms
->   displaySys        -< ss
->   displayMessages   -< ss
->   displayChannels [0..15] -< cs
->   returnA -< ()
+>   displaySys  -< (ss, rd==ResetAll)
+>   returnA  -< (cs, rd)
+
+> rightPane :: UISF ([[Message]], ResetDisplay) ()
+> rightPane = topDown $ proc (msgs, rd) -> do 
+>   displayArrow -< (msgs, rd)
 
 MUI Params
 
-> myMUIParams = defaultMUIParams{uiSize=(800,900)}
+> myMUIParams = defaultMUIParams{uiTitle="MIDI Visualizer",uiSize=(1800,700)}
 
 ================================================================================
 For debugging purposes
