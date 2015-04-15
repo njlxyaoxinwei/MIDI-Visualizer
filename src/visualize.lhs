@@ -24,7 +24,7 @@ Takes an array of timed messages and perform visualize.
 
 > visualize :: [(DeltaT, Message)]->IO ()
 > visualize msgs = msgs `seq` runMUI myMUIParams $ leftRight $ proc _ -> do 
->   (ms, rd) <- setSize (350,925) (leftPane msgs) -< ()
+>   (ms, rd) <- setSize (350,600) (leftPane msgs) -< ()
 >   rightPane -< (ms, rd)
 >   returnA   -< ()
 
@@ -44,7 +44,7 @@ Takes an array of timed messages and perform visualize.
 
 MUI Params
 
-> myMUIParams = defaultMUIParams{uiTitle="MIDI Visualizer",uiSize=(1800,700)}
+> myMUIParams = defaultMUIParams{uiTitle="MIDI Visualizer",uiSize=(1400,600)}
 
 ================================================================================
 For debugging purposes
