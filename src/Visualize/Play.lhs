@@ -49,9 +49,13 @@ play status
 >   displayTrack -< (truncate prog, truncate l)
 >   returnA      -< ()
 >   where displayTrack = leftRight $ proc (p, l) -> do 
->           display-< p
+>           displayTime-< p
 >           label "/" -< ()
->           display-< l
+>           displayTime-< l
+>         displayTime = leftRight $ proc t -> do 
+>           display -< t `div` 60
+>           label ":" -< ()
+>           display -< t `mod` 60
 
 
 playMidArrow takes an array of timed midi messages and creates a MUI that has a 
