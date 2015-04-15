@@ -6,7 +6,7 @@
 
 > type NoteInfo = (Key, Velocity)
 > type UpdateFunc a = a->[Message]->a
-> type ChannelVolume = (Int, Int)  --Correspond to Controller 7 and 11 
+> type ChannelVolume = (Int, Int)  --Correspond to Controller 7 (Channel Volume) and 11 (Expression)
 > type SystemInfo = (String, String, KeySig, TimeSig, Codec.Midi.Tempo)  --Text, Lyric, ...
 > type ChannelInfo = ([NoteInfo], InstrumentName, ChannelVolume)
 > type KeySig = (PitchClass, Mode)
