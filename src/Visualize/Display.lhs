@@ -1,20 +1,19 @@
 > {-# LANGUAGE Arrows #-}
 
-> module Visualize.Display where
-> import Visualize.Play
+> module Visualize.Display (
+>   displayArrow, displaySys, ResetDisplay(..),
+>   getAllChannelInfo, getChannelInfo,
+>   displayChannels,
+>   displaySingleChannel, displaySingleDrumChannel, displayDrumHist
+> ) where
 > import Visualize.Music
 > import HistogramUpdate
 > import Euterpea
-> import Codec.Midi
+> import Codec.Midi (Message, Channel)
 
 > type ChannelDisplayStatus = Maybe Channel -- Nothing: display all
+> data ResetDisplay = NoReset | ResetNotes | ResetAll deriving (Show, Eq)
 
-
-Process an Event of Messages, a wrapper around Visualize.Music.groupMsgs
-
-> groupMsgEvents :: SEvent [Message]->([Message], [[Message]])
-> groupMsgEvents Nothing     = ([], replicate 16 [])
-> groupMsgEvents (Just msgs) = groupMsgs msgs
 
 ChannelDisplay Handler
 
@@ -160,9 +159,9 @@ For debugging purposes
 
 Display the messages event
 
-> displayMessages :: UISF [Message] ()
-> displayMessages = proc msgs -> do 
->   let event = if null msgs then Nothing else Just msgs
->   display <<< hold [] -< event
+--> displayMessages :: UISF [Message] ()
+--> displayMessages = proc msgs -> do 
+-->   let event = if null msgs then Nothing else Just msgs
+-->   display <<< hold [] -< event
 
 

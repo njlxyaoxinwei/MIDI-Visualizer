@@ -1,13 +1,21 @@
-> module Visualize.Music where
-> import Euterpea
-> import Euterpea.IO.MUI.MidiWidgets
-> import Codec.Midi
-> import Data.List
+> module Visualize.Music (
+>   midiToMsgs, groupMsgs,
+>   NoteInfo, ChannelVolume, SystemInfo, ChannelInfo,
+>   defaultMSPB, defaultChannelVolume, defaultTimeSig,
+>   defaultKeySig, defaultInstrumentName,
+>   UpdateFunc,
+>   updateNoteInfo, updateChannelVolume, 
+>   updateSystemInfo, updateInstrumentName,
+>   plotVolume, toPercussionPlot, getPerc
+> ) where
+> import Euterpea hiding (Tempo)
+> import Codec.Midi 
+> import Data.List (partition, deleteBy, insert)
 
 > type NoteInfo = (Key, Velocity)
 > type UpdateFunc a = a->[Message]->a
 > type ChannelVolume = (Int, Int)  --Correspond to Controller 7 (Channel Volume) and 11 (Expression)
-> type SystemInfo = (String, String, KeySig, TimeSig, Codec.Midi.Tempo)  --Text, Lyric, ...
+> type SystemInfo = (String, String, KeySig, TimeSig, Tempo)  --Text, Lyric, ...
 > type ChannelInfo = ([NoteInfo], InstrumentName, ChannelVolume)
 > type KeySig = (PitchClass, Mode)
 > type TimeSig = (Int, Int)
@@ -49,7 +57,7 @@ Default Values
 
 1. Default Microseconds Per Beat
 
-> defaultMSPB = 500000 :: Codec.Midi.Tempo
+> defaultMSPB = 500000 :: Tempo
 
 2. Default Channel Volume/Expression (CC#7 and CC#11)
 
