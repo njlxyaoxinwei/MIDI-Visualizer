@@ -5,5 +5,5 @@ visualize
 .cabal-sandbox/*
 Makefile
 cabal.sandbox.config
-
+dist/*
 
