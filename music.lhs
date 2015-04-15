@@ -113,12 +113,6 @@ Update InstrumentName
 >   updateInst n (ProgramChange _ x) = toEnum x
 >   updateInst n _                   = n 
 
-Update BPM
-
---> updateMSPB :: UpdateFunc Codec.Midi.Tempo
---> updateMSPB = getUpdateFunc update where
--->   update t (TempoChange x) = x
--->   update t _               = t
 
 A Velocity Function from NoteInfo on [0..127]
 

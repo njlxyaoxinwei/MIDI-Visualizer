@@ -43,7 +43,7 @@ Takes an array of timed messages and perform visualize.
 
 MUI Params
 
-> myMUIParams = defaultMUIParams{uiSize=(1800,700)}
+> myMUIParams = defaultMUIParams{uiTitle="MIDI Visualizer",uiSize=(1800,700)}
 
 ================================================================================
 For debugging purposes
