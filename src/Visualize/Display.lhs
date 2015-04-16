@@ -86,7 +86,7 @@ Display Single Channel
 >   e<-backButton-<9
 >   (| leftRight (do display <<< label "Channel Volume (0-127): "             -< v7
 >                    display <<< label "Instrument Expression (0-127): "      -< v11)|)
->   leftRight $ display <<< label "Current Sound and Velocity (0-127): " -< map (\(k,v)->(getPerc k, v)) notes
+>   leftRight $ display <<< label "Current Sound and Velocity (0-127): " -< map (\(k,v)->(getPerc k, v)) $ filter (\(k,v)->k>=35 && k<=81) notes
 >   let vs = toPercussionPlot . plotVolume notes $ vol
 >   displayDrumHist -< vs
 >   case e of
