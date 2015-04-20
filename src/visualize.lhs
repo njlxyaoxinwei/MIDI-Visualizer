@@ -8,7 +8,7 @@
 > import System.Environment (getArgs)
 > import Euterpea
 
-Entry point
+main is the entry point of the visualize program
 
 > main :: IO ()
 > main = do 
@@ -21,13 +21,15 @@ Entry point
 >         Left s    -> putStrLn s
 >         Right mid -> visualize $ midiToMsgs mid
 
-Takes an array of timed messages and perform visualize.
+visualize takes an array of timed messages and start the MUI
 
 > visualize :: [(DeltaT, Message)]->IO ()
 > visualize msgs = msgs `seq` runMUI myMUIParams $ leftRight $ proc _ -> do 
 >   (ms, rd) <- setSize (350,600) (leftPane msgs) -< ()
 >   rightPane -< (ms, rd)
 >   returnA   -< ()
+
+leftPane consists of output selection, control Panel and System Information
 
 > leftPane :: [(DeltaT, Message)]->UISF () ([[Message]], ResetDisplay)
 > leftPane msgs = topDown $ proc _ -> do 
@@ -39,25 +41,15 @@ Takes an array of timed messages and perform visualize.
 >   where groupMsgEvents Nothing      = ([], replicate 16 [])
 >         groupMsgEvents (Just msgs') = groupMsgs msgs'
 
+rightPane consists of visualization of the channels.
+
 > rightPane :: UISF ([[Message]], ResetDisplay) ()
 > rightPane = topDown $ proc (msgs, rd) -> do 
 >   displayArrow -< (msgs, rd)
 
-MUI Params
+MUI Params for visualize
 
 > myMUIParams :: UIParams
 > myMUIParams = defaultMUIParams{uiTitle="MIDI Visualizer",uiSize=(1400,600)}
 
-================================================================================
-For debugging purposes
-
---> debugMidi mid = (fileType mid, timeDiv mid, map (filter myFilter) $ tracks mid) where
--->   myFilter (_, NoteOn _ _ _) = False
--->   myFilter (_, NoteOff _ _ _) = False
--->   myFilter (_, Reserved _ _) = False
--->   myFilter (_, Text _) = False
--->   myFilter (_, ControlChange _ _ _) = False
--->   myFilter (_, ProgramChange _ _) = True
--->   myFilter (_, TempoChange _) = True
--->   myFilter _ = False
 
