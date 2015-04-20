@@ -106,11 +106,16 @@ a channel.
 > channelSpecificFilter _                     = False
 
 
+Given a function that updates the a value according to one message, get a 
+function that takes a list of messages and updates the a value by going through 
+the messages one by one.
 
 > getUpdateFunc :: (a->Message->a)->UpdateFunc a
 > getUpdateFunc func original = foldl func original
 
-Update (Key, Velocity) according to a new set of messages
+UpdateFuncs for various information:
+
+1. Update current list of (Key, Velocity) according to a new set of messages
 
 > updateNoteInfo :: UpdateFunc [NoteInfo]
 > updateNoteInfo = getUpdateFunc updateOneNote where
@@ -121,23 +126,14 @@ Update (Key, Velocity) according to a new set of messages
 >   updateOneNote _   (ControlChange _ 123 0) = []
 >   updateOneNote nis _                       = nis
 
-Update InstrumentName
+2. Update InstrumentName according to a new set of messages
 
 > updateInstrumentName :: UpdateFunc InstrumentName
 > updateInstrumentName = getUpdateFunc updateInst where
 >   updateInst _ (ProgramChange _ x) = toEnum x
 >   updateInst n _                   = n 
 
-
-A Velocity Function from NoteInfo on [0..127]
-
-> plotVolume :: [NoteInfo]->ChannelVolume->[Double]
-> plotVolume nis (v7,v11) = plot' 0 nis where
->   e = (v7*v11) `myDiv` (127*127*127)
->   plot' 128 _             = []
->   plot' k []              = 0:plot' (k+1) []
->   plot' k nis'@((k',v):ns) = if k==k' then ((fromIntegral v*e):plot' (k+1) ns)
->                                       else (0:plot' (k+1) nis')
+3. Update ChannelVolume
 
 > updateChannelVolume :: UpdateFunc ChannelVolume
 > updateChannelVolume = getUpdateFunc update where
@@ -145,14 +141,7 @@ A Velocity Function from NoteInfo on [0..127]
 >   update (v7,_  ) (ControlChange _ 11 x) = (v7,  x)
 >   update (v7,v11) _                      = (v7,v11)
 
-> getPerc :: Key->PercussionSound
-> getPerc k = toEnum (k-35)
-
-> toPercussionPlot :: [Double]->[(Double, String)]
-> toPercussionPlot vs = let slice = take 47 . drop 35 $ vs
->                           ps    = map toEnum [0..46] :: [PercussionSound]
->                       in  zip slice (map show ps)
-
+4. Update SystemInfo, i.e. Text, Lyrics, TimeSig, KeySig and Tempo
 
 > updateSystemInfo :: UpdateFunc SystemInfo
 > updateSystemInfo = getUpdateFunc update where
@@ -162,15 +151,49 @@ A Velocity Function from NoteInfo on [0..127]
 >   update (t,l,_    ,(a,b),x ) (KeySignature p m)      = (t, l, (getKeySig p m), (a,b), x)
 >   update (t,l,(p,m),(a,b),_ ) (TempoChange x)         = (t, l, (p,m), (a,b), x)
 >   update (t,l,(p,m),(a,b),x ) _                       = (t, l, (p,m), (a,b), x)                  
- 
+
+
+
+
+A Velocity Function from NoteInfo on [0..127], ranging from 0 to 1.
+
+> plotVolume :: [NoteInfo]->ChannelVolume->[Double]
+> plotVolume nis (v7,v11) = plot' 0 nis where
+>   e = (v7*v11) `myDiv` (127*127*127)
+>   plot' 128 _             = []
+>   plot' k []              = 0:plot' (k+1) []
+>   plot' k nis'@((k',v):ns) = if k==k' then ((fromIntegral v*e):plot' (k+1) ns)
+>                                       else (0:plot' (k+1) nis')
+
+Get PercussionSound from key, assuming the key is a valid PercussionSound.
+
+> getPerc :: Key->PercussionSound
+> getPerc k = toEnum (k-35)
+
+Take a histogram of key volumes, get the subset corresponding to 
+PercussionSounds, and attach the names of the sounds to the histogram.
+
+> toPercussionPlot :: [Double]->[(Double, String)]
+> toPercussionPlot vs = let slice = take 47 . drop 35 $ vs
+>                           ps    = map toEnum [0..46] :: [PercussionSound]
+>                       in  zip slice (map show ps)
+
+Parser for TimeSignature
+
 > getTimeSig :: Int->Int->TimeSig
 > getTimeSig a b = (a, 2^b)
+
+Parser for KeySignature
 
 > getKeySig :: Int->Int->KeySig
 > getKeySig a 0 = (majorKeyList!!(a+7), Major)
 > getKeySig a 1 = (minorKeyList!!(a+7), Minor)
 > getKeySig a x = error $ "Wrong Input" ++ show a ++ " " ++ show x
 
+
+The helper list for determining KeySignatures: 
+majorKeyList starts from the major key with 7 flats and goes up to the major key
+with 7 sharps; minorKeyList does the same thing for minor keys.
 
 > majorKeyList, minorKeyList :: [PitchClass]
 > majorKeyList = [Cf, Gf, Df, Af, Ef, Bf, F, C, G, D, A, E, B, Fs, Cs]
