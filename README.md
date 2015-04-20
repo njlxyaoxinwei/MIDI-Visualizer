@@ -8,17 +8,17 @@ a haskell program for visualizing midi files, final project of Yale University C
 - [UISF v0.3.0.1](https://hackage.haskell.org/package/UISF)
 - [HCodecs v0.5](https://hackage.haskell.org/package/HCodecs)
 
-## Building
+## Building from source
 
 ```
-cabal install --dependencies-only
-cabal configure
-cabal build
+% cabal install --dependencies-only
+% cabal configure
+% cabal build
 ```
 
 The executable lies in
 ```
-dist/build/visualize/visualize
+% dist/build/visualize/visualize
 ```
 
 If you run into the following error
@@ -29,7 +29,7 @@ collect2: error: ld returned 1 exit status
 ```
 Please run the following additional flag
 ```
-cabal build --ghc-options=-optl-pthread
+% cabal build --ghc-options=-optl-pthread
 ```
 
 ## Usage
@@ -54,7 +54,7 @@ visualize is a MIDI player with lots of helpful visualizations to show what is g
 
 For each MIDI channel, it displays a graph of the current volume for each key and the instrument used. For the Percussion Channel it displays the percussion sound too.
 
-As a player, it allows basic controls such as play/pause/resume/stop as well as advanced controls such as playback speed and skipping ahead.
+As a player, it allows basic controls such as play/pause/resume/stop as well as advanced controls such as playback speed and skipping ahead. A helpful timer is also provided for easy navigation within the music.
 
 ## Screenshots
 
@@ -62,6 +62,7 @@ As a player, it allows basic controls such as play/pause/resume/stop as well as 
 ![Playing](Screenshots/PlayView.png)
 ![Channel](Screenshots/ChannelView.png)
 ![Percussion](Screenshots/PercussionView.png)
+
 
 
 

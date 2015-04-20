@@ -8,8 +8,8 @@
 >   stopAllNotes
 >  ) where
 > import Visualize.Display (ResetDisplay(..))
-> import Euterpea
-> import Codec.Midi (Message, Channel)
+> import Euterpea hiding (a, b, c, cs, d, es)
+> import Codec.Midi (Channel)
 > import FRP.UISF.AuxFunctions (eventBuffer)
 
 PlayStatus is the status of the player. PlayEvent is the event of changing the 
@@ -48,10 +48,10 @@ play status
 >   prog <- accum 0 -< func
 >   displayTrack -< (truncate prog, ceiling l)
 >   returnA      -< ()
->   where displayTrack = leftRight $ proc (p, l) -> do 
+>   where displayTrack = leftRight $ proc (p, l') -> do 
 >           displayTime-< p
 >           label "/" -< ()
->           displayTime-< l
+>           displayTime-< l'
 >         displayTime = leftRight $ proc t -> do 
 >           displayStr -< show' $ t `div` 60
 >           label ":" -< ()
@@ -99,6 +99,7 @@ Button controls for playMidArrow
 >                 e1 <- do case ps of 
 >                            Playing -> edge<<<button "pause" -<()
 >                            Paused  -> edge<<<button "resume"-<()
+>                            PStopped-> returnA -< error "PStopped not handled"
 >                 e2 <- edge<<<button "stop" -< ()   
 >                 e3 <- edge<<<button ">>"   -< ()
 >                 returnA -< helper dt (helper2 ps) (e1,e2,e3)
@@ -108,8 +109,9 @@ Button controls for playMidArrow
 >                         (Just _,_,_) -> Just pe
 >                         (_,_,Just _) -> Just (PSkip dt)      
 >                         _            -> Nothing
->         helper2 Playing = Pause
->         helper2 Paused  = PResume
+>         helper2 Playing  = Pause
+>         helper2 Paused   = PResume
+>         helper2 PStopped = error "PStopped not handled in helper2"
 
 Given the timed messages to play, creates a arrow that returns the appropriate
 BufferOperation and the updated PlayStatus according to the PlayStatus and 

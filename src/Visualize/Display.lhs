@@ -8,8 +8,8 @@
 > ) where
 > import Visualize.Music
 > import HistogramUpdate
-> import Euterpea hiding (Tempo)
-> import Codec.Midi (Message, Channel, Tempo)
+> import Euterpea hiding (Tempo, a, b, c, cs, e)
+> import Codec.Midi (Channel)
 
 > type ChannelDisplayStatus = Maybe Channel -- Nothing: display all
 > data ResetDisplay = NoReset | ResetNotes | ResetAll deriving (Show, Eq)
@@ -86,7 +86,7 @@ Display Single Channel
 >   e<-backButton-<9
 >   (| leftRight (do display <<< label "Channel Volume (0-127): "             -< v7
 >                    display <<< label "Instrument Expression (0-127): "      -< v11)|)
->   leftRight $ display <<< label "Current Sound and Velocity (0-127): " -< map (\(k,v)->(getPerc k, v)) $ filter (\(k,v)->k>=35 && k<=81) notes
+>   leftRight $ display <<< label "Current Sound and Velocity (0-127): " -< map (\(k,v)->(getPerc k, v)) $ filter (\(k,_)->k>=35 && k<=81) notes
 >   let vs = toPercussionPlot . plotVolume notes $ vol
 >   displayDrumHist -< vs
 >   case e of
@@ -124,7 +124,7 @@ Display row channel information
 
 
 > displayDrumChannel :: UISF ChannelInfo (SEvent ())
-> displayDrumChannel = title "Channel 10 (Percussion)" . leftRight $ proc (notes, inst, vol) -> do
+> displayDrumChannel = title "Channel 10 (Percussion)" . leftRight $ proc (notes, _ , vol) -> do
 >   e<-edge<<<setSize (70,20) (button "Detail") -< ()
 >   setSize (170,20) display -< Percussion
 >   let vs = Just $ plotVolume notes vol

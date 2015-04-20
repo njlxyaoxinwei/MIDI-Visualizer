@@ -6,15 +6,16 @@
 > import Visualize.Music (groupMsgs, midiToMsgs)
 > import Visualize.Display (displayArrow, displaySys, ResetDisplay(ResetAll))
 > import System.Environment (getArgs)
-> import Euterpea
+> import Euterpea hiding (cs)
 
 Entry point
 
+> main :: IO ()
 > main = do 
 >   args <- getArgs
 >   case args of 
 >     []    -> putStrLn "No path specified!"
->     (x:xs)-> do 
+>     (x:_)-> do 
 >       file <- importFile x
 >       case file of
 >         Left s    -> putStrLn s
@@ -31,12 +32,12 @@ Takes an array of timed messages and perform visualize.
 > leftPane :: [(DeltaT, Message)]->UISF () ([[Message]], ResetDisplay)
 > leftPane msgs = topDown $ proc _ -> do 
 >   dev           <- selectOutput      -< ()
->   (ms, ps, rd)  <- controlPanel msgs -< dev
+>   (ms, _ , rd)  <- controlPanel msgs -< dev
 >   let (ss, cs) = groupMsgEvents ms
 >   displaySys  -< (ss, rd==ResetAll)
 >   returnA  -< (cs, rd)
->   where groupMsgEvents Nothing     = ([], replicate 16 [])
->         groupMsgEvents (Just msgs) = groupMsgs msgs
+>   where groupMsgEvents Nothing      = ([], replicate 16 [])
+>         groupMsgEvents (Just msgs') = groupMsgs msgs'
 
 > rightPane :: UISF ([[Message]], ResetDisplay) ()
 > rightPane = topDown $ proc (msgs, rd) -> do 
@@ -44,6 +45,7 @@ Takes an array of timed messages and perform visualize.
 
 MUI Params
 
+> myMUIParams :: UIParams
 > myMUIParams = defaultMUIParams{uiTitle="MIDI Visualizer",uiSize=(1400,600)}
 
 ================================================================================

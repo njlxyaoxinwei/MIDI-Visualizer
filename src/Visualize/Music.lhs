@@ -8,7 +8,7 @@
 >   updateSystemInfo, updateInstrumentName,
 >   plotVolume, toPercussionPlot, getPerc
 > ) where
-> import Euterpea hiding (Tempo)
+> import Euterpea hiding (Tempo, a, b, c, e)
 > import Codec.Midi 
 > import Data.List (partition, deleteBy, insert)
 
@@ -57,23 +57,28 @@ Default Values
 
 1. Default Microseconds Per Beat
 
-> defaultMSPB = 500000 :: Tempo
+> defaultMSPB :: Tempo
+> defaultMSPB = 500000
 
 2. Default Channel Volume/Expression (CC#7 and CC#11)
 
-> defaultChannelVolume = (100,100) :: ChannelVolume
+> defaultChannelVolume :: ChannelVolume
+> defaultChannelVolume = (100,100)
 
 3. Default InstrumentName 
 
+> defaultInstrumentName :: InstrumentName
 > defaultInstrumentName = AcousticGrandPiano
 
 4. Default TimeSignature
 
-> defaultTimeSig = (4,4) :: TimeSig
+> defaultTimeSig :: TimeSig
+> defaultTimeSig = (4,4)
 
 5. Default Key Signature
 
-> defaultKeySig = (C, Major) :: KeySig
+> defaultKeySig :: KeySig
+> defaultKeySig = (C, Major)
 
 Divide the array of messages into System-Wide messages and Channel-Specific 
 ones, the latter further divided into a list of 16 lists, each corresponding to
@@ -111,14 +116,14 @@ Update (Key, Velocity) according to a new set of messages
 >   updateOneNote nis (NoteOn  _ k 0)         = updateOneNote nis (NoteOff 0 k 0)
 >   updateOneNote nis (NoteOn  _ k v)         = let nis' = updateOneNote nis (NoteOff 0 k v)
 >                                               in insert (k,v) nis'
->   updateOneNote nis (ControlChange _ 123 0) = []
+>   updateOneNote _   (ControlChange _ 123 0) = []
 >   updateOneNote nis _                       = nis
 
 Update InstrumentName
 
 > updateInstrumentName :: UpdateFunc InstrumentName
 > updateInstrumentName = getUpdateFunc updateInst where
->   updateInst n (ProgramChange _ x) = toEnum x
+>   updateInst _ (ProgramChange _ x) = toEnum x
 >   updateInst n _                   = n 
 
 
@@ -129,13 +134,13 @@ A Velocity Function from NoteInfo on [0..127]
 >   e = (v7*v11) `myDiv` (127*127*127)
 >   plot' 128 _             = []
 >   plot' k []              = 0:plot' (k+1) []
->   plot' k nis@((k',v):ns) = if k==k' then ((fromIntegral v*e):plot' (k+1) ns)
->                                      else (0:plot' (k+1) nis)
+>   plot' k nis'@((k',v):ns) = if k==k' then ((fromIntegral v*e):plot' (k+1) ns)
+>                                       else (0:plot' (k+1) nis')
 
 > updateChannelVolume :: UpdateFunc ChannelVolume
 > updateChannelVolume = getUpdateFunc update where
->   update (v7,v11) (ControlChange _ 7  x) = (x, v11)
->   update (v7,v11) (ControlChange _ 11 x) = (v7,  x)
+>   update (_ ,v11) (ControlChange _ 7  x) = (x, v11)
+>   update (v7,_  ) (ControlChange _ 11 x) = (v7,  x)
 >   update (v7,v11) _                      = (v7,v11)
 
 > getPerc :: Key->PercussionSound
@@ -162,6 +167,9 @@ A Velocity Function from NoteInfo on [0..127]
 > getKeySig :: Int->Int->KeySig
 > getKeySig a 0 = (majorKeyList!!(a+7), Major)
 > getKeySig a 1 = (minorKeyList!!(a+7), Minor)
+> getKeySig a x = error $ "Wrong Input" ++ show a ++ " " ++ show x
 
+
+> majorKeyList, minorKeyList :: [PitchClass]
 > majorKeyList = [Cf, Gf, Df, Af, Ef, Bf, F, C, G, D, A, E, B, Fs, Cs]
 > minorKeyList = [Af, Ef, Bf, F, C, G, D, A, E, B, Fs, Cs, Gs, Ds, As]

@@ -10,7 +10,7 @@ name:                Visualize
 -- PVP summary:      +-+------- breaking API changes
 --                   | | +----- non-breaking API additions
 --                   | | | +--- code changes with no API change
-version:             0.1.0.0
+version:             1.0.0.0
 
 -- A short (one-line) description of the package.
 synopsis:            Play MIDI music with Visualization
@@ -52,6 +52,9 @@ cabal-version:       >=1.10
 executable visualize
   -- .hs or .lhs file containing the Main module.
   main-is:             visualize.lhs
+
+  -- GHC flags.
+  ghc-options:         -Wall -O2
   
   -- Modules included in this executable, other than Main.
   -- other-modules:    
@@ -61,7 +64,7 @@ executable visualize
   
   -- Other library packages from which modules are imported.
   build-depends:       base >=4.7 && <4.8, 
-                       Euterpea ==1.0.0,
+                       Euterpea >=1.0 && <1.1,
                        HCodecs >=0.5 && <0.6,
                        UISF >=0.3 && <0.4
   
