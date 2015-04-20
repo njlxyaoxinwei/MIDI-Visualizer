@@ -6,7 +6,7 @@
 > import Visualize.Music (groupMsgs, midiToMsgs)
 > import Visualize.Display (displayArrow, displaySys, ResetDisplay(ResetAll))
 > import System.Environment (getArgs)
-> import Euterpea hiding (cs)
+> import Euterpea
 
 Entry point
 

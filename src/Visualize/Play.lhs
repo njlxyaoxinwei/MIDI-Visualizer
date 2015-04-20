@@ -8,9 +8,9 @@
 >   stopAllNotes
 >  ) where
 > import Visualize.Display (ResetDisplay(..))
-> import Euterpea hiding (a, b, c, cs, d, es)
-> import Codec.Midi (Channel)
+> import Euterpea
 > import FRP.UISF.AuxFunctions (eventBuffer)
+> import Codec.Midi (Channel)
 
 PlayStatus is the status of the player. PlayEvent is the event of changing the 
 play status

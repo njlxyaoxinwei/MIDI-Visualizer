@@ -8,7 +8,7 @@
 > ) where
 > import Visualize.Music
 > import HistogramUpdate
-> import Euterpea hiding (Tempo, a, b, c, cs, e)
+> import Euterpea
 > import Codec.Midi (Channel)
 
 > type ChannelDisplayStatus = Maybe Channel -- Nothing: display all

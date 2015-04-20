@@ -6,10 +6,12 @@
 >   UpdateFunc,
 >   updateNoteInfo, updateChannelVolume, 
 >   updateSystemInfo, updateInstrumentName,
->   plotVolume, toPercussionPlot, getPerc
+>   plotVolume, toPercussionPlot, getPerc,
+>   Message, DeltaT, InstrumentName(..), Mode(..), PercussionSound, PitchClass(..)
 > ) where
-> import Euterpea hiding (Tempo, a, b, c, e)
+> import Euterpea (PitchClass(..), InstrumentName(..), Mode(..), PercussionSound)
 > import Codec.Midi 
+> import FRP.UISF.AuxFunctions (DeltaT)
 > import Data.List (partition, deleteBy, insert)
 
 > type NoteInfo = (Key, Velocity)
