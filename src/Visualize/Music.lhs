@@ -14,8 +14,16 @@
 > import FRP.UISF.AuxFunctions (DeltaT)
 > import Data.List (partition, deleteBy, insert)
 
-> type NoteInfo = (Key, Velocity)
+
+An UpdateFunc is a function that updates some information with a list of 
+Midi Messages. They are used in the Display Module to update the display.
+
 > type UpdateFunc a = a->[Message]->a
+
+NoteInfo, ChannelVolume, SystemInfo, ChannelInfo, KeySig, TimeSig are all 
+information that visualize keeps track of at any given instant.
+
+> type NoteInfo = (Key, Velocity)
 > type ChannelVolume = (Int, Int)  --Correspond to Controller 7 (Channel Volume) and 11 (Expression)
 > type SystemInfo = (String, String, KeySig, TimeSig, Tempo)  --Text, Lyric, ...
 > type ChannelInfo = ([NoteInfo], InstrumentName, ChannelVolume)
