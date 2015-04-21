@@ -44,8 +44,7 @@ leftPane consists of output selection, control Panel and System Information
 rightPane consists of visualization of the channels.
 
 > rightPane :: UISF ([[Message]], ResetDisplay) ()
-> rightPane = topDown $ proc (msgs, rd) -> do 
->   displayArrow -< (msgs, rd)
+> rightPane = topDown displayArrow
 
 MUI Params for visualize
 

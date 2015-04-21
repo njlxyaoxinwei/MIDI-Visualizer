@@ -11,11 +11,19 @@
 > import Euterpea
 > import Codec.Midi (Channel)
 
+ChannelDisplayStatus is Nothing when all channels are displayed, or Just c when
+user is viewing the detail view for channel c.
+
 > type ChannelDisplayStatus = Maybe Channel -- Nothing: display all
+
+At each time slot, ResetDisplay specifies which display(s) to reset.
+
 > data ResetDisplay = NoReset | ResetNotes | ResetAll deriving (Show, Eq)
 
 
-ChannelDisplay Handler
+ChannelDisplay Handler, The overall arrow for RightPanel display. At each time
+slot it takes the messages played and updates all the infomation, then 
+determines what to show to the user.
 
 > displayArrow :: UISF ([[Message]], ResetDisplay) ()
 > displayArrow = proc (cs,rd) -> do 
@@ -34,12 +42,19 @@ ChannelDisplay Handler
 
 Process Channel Specific Messages
 
+getAllChannelInfo takes a list of channels and returns an arrow that returns
+the current ChannelInfo (NoteInfo, Instrument and Volume) for all channels 
+requested.
+
 > getAllChannelInfo :: [Channel]-> UISF ([[Message]], ResetDisplay) [ChannelInfo]
 > getAllChannelInfo []     = arr (const [])
 > getAllChannelInfo (c:cs) = proc (msgs,rd) -> do 
 >    info <- getChannelInfo -< (msgs!!c,rd)
 >    infos<- getAllChannelInfo cs-< (msgs,rd)
 >    returnA-< info:infos
+
+getChannelInfo updates the information for one specific channel, according to 
+the messages given at each time slot
 
 > getChannelInfo :: UISF ([Message], ResetDisplay) ChannelInfo
 > getChannelInfo = proc (msgs,rd) -> do 
@@ -66,7 +81,7 @@ Display channel information for list of channels
 >     Just _ ->returnA-<Just c
 
 
-Display Single Channel 
+Display Single Channel (Detailed View) 
 
 > displaySingleChannel :: UISF (Channel, ChannelInfo) ChannelDisplayStatus
 > displaySingleChannel = title "Channel Detail" $ proc (c, (notes, inst, vol@(v7,v11))) -> do 
@@ -81,6 +96,8 @@ Display Single Channel
 >     Nothing-> returnA-< Just c
 >     Just _ -> returnA-< Nothing
 
+Detailed View for Drum Channel (Channel 10)
+
 > displaySingleDrumChannel :: UISF ChannelInfo ChannelDisplayStatus
 > displaySingleDrumChannel = title "Percussion Channel Detail" $ proc (notes, _, vol@(v7,v11)) -> do 
 >   e<-backButton-<9
@@ -92,6 +109,8 @@ Display Single Channel
 >   case e of
 >     Nothing -> returnA -< Just 9
 >     Just _  -> returnA -< Nothing
+
+Given the annotated histogram, displays the Percussion visualization.
 
 > displayDrumHist :: UISF [(Double, String)] ()
 > displayDrumHist = let drumLayout = makeLayout (Stretchy 300) (Stretchy 75)
@@ -106,13 +125,17 @@ Display Single Channel
 >                         take l . drop (2*l) $ vs, 
 >                         drop (3*l) vs)
 
+The Back Button for the detail view. The arrow returns an event if the back 
+button is pressed
+
 > backButton :: UISF Channel (SEvent ())
 > backButton = leftRight $ proc c -> do 
 >   e<-setSize (70,20) $ edge<<<button "Back" -< ()
 >   displayStr -< "Channel " ++ show (c+1)
 >   returnA    -< e
 
-Display row channel information
+Display row channel information, the arrow returns an event if the detail button 
+is pressed.
 
 > displayChannel :: Channel->UISF ChannelInfo (SEvent ())
 > displayChannel c = title ("Channel "++show (c+1)) . leftRight $ proc (notes, inst, vol) -> do 
@@ -148,20 +171,13 @@ Display System information
 >                     As->"A#"; Cs->"C#"; Ds->"D#"; Fs->"F#"; Gs->"Gs"; _ ->show p
 
 
+Converts a UpdateFunc to an arrow that takes in the messages at each time slot
+and whether to reset the display, and outputs the updated information of type a.
+
 > getUpdateArrow :: a->UpdateFunc a->UISF ([Message], Bool) a
 > getUpdateArrow def update = proc (msgs,flag) -> do 
 >   rec oldVal <- delay def -< newVal
 >       let newVal = if flag then def else update oldVal msgs
 >   returnA -< newVal
-
-================================================================================
-For debugging purposes
-
-Display the messages event
-
---> displayMessages :: UISF [Message] ()
---> displayMessages = proc msgs -> do 
--->   let event = if null msgs then Nothing else Just msgs
--->   display <<< hold [] -< event
 
 
