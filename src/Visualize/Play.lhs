@@ -1,5 +1,11 @@
 > {-# LANGUAGE Arrows #-}
 
+> -- Module        : Visualize.Play
+> -- Copyright     : (c) 2015 Xinwei Yao
+> -- Date Modified : 6/1/2015
+> --
+> -- Play Module of Visualize, providing the control panel for music playback.
+
 > module Visualize.Play (
 >   PlayStatus(..), PlayEvent(..),
 >   controlPanel, 

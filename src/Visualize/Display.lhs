@@ -1,5 +1,11 @@
 > {-# LANGUAGE Arrows #-}
 
+> -- Module        : Visualize.Display
+> -- Copyright     : (c) 2015 Xinwei Yao
+> -- Date Modified : 6/1/2015
+> --
+> -- Display Module of Visualize, providing arrows for information display
+
 > module Visualize.Display (
 >   displayArrow, displaySys, ResetDisplay(..),
 >   getAllChannelInfo, getChannelInfo,

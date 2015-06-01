@@ -1,3 +1,9 @@
+> -- Module        : Visualize.Music
+> -- Copyright     : (c) 2015 Xinwei Yao
+> -- Date Modified : 6/1/2015
+> --
+> -- Music Module of Visualize, providing manipulation of MIDI messages
+
 > module Visualize.Music (
 >   midiToMsgs, groupMsgs,
 >   NoteInfo, ChannelVolume, SystemInfo, ChannelInfo,

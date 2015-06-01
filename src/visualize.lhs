@@ -1,5 +1,11 @@
 > {-# LANGUAGE Arrows #-}
 
+> -- Module        : Main
+> -- Copyright     : (c) 2015 Xinwei Yao
+> -- Date Modified : 6/1/2015
+> --
+> -- Main module of Visualize
+
 > module Main where
 
 > import Visualize.Play (controlPanel)
