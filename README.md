@@ -4,6 +4,7 @@ a haskell program for visualizing midi files, final project of Yale University C
 
 ## Dependencies
 
+- [PortMidi v0.1.4](https://hackage.haskell.org/package/PortMidi)
 - [Euterpea v1.0.0](https://github.com/Euterpea/Euterpea)
 - [UISF v0.3.0.1](https://hackage.haskell.org/package/UISF)
 - [HCodecs v0.5](https://hackage.haskell.org/package/HCodecs)
